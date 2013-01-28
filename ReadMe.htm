@@ -1,0 +1,208 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+<title>CMSIS-DAP Release Notes</title>
+<meta http-equiv="Content-Language" content="en-us">
+<meta name="GENERATOR" content="Microsoft FrontPage 12.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<style>
+<!--
+body         { color: #000000; background-color: #FFFFFF; font-size: 75%; font-family: 
+               Verdana, Arial, 'Sans Serif' }
+p            { font-family: Verdana; font-size: 10pt }
+.LI2         { margin-top: 6px; margin-bottom: 6px }
+.Release     { background-color: #CCCCCC; font-weight: bold; padding: 6px }
+.ToolT       { font-size: 8pt; color: #808080 }
+.TinyT       { font-size: 8pt; text-align: Center }
+h1           { font-family: Verdana; font-size: 18pt; color: #000080; font-weight: bold; 
+               text-align: Center; margin-right: 3px }
+h2           { font-family: Verdana; font-size: 14pt; color: #000080; font-weight: bold; 
+               background-color: #CCCCCC; margin-top: 24px; margin-bottom: 3px; 
+               padding: 6px }
+h3           { font-family: Verdana; font-size: 10pt; font-weight: bold; background-color: 
+               #CCCCCC; margin-top: 12px; margin-bottom: 3px; padding: 6px }
+pre          { font-family: Courier New; font-size: 10pt; background-color: #CCFFCC; 
+               margin-left: 24px; margin-right: 24px }
+ul           { font-family: Verdana; font-size: 10pt; list-style-type: square }
+ol           { font-family: Verdana; font-size: 10pt }
+li           { margin-left: 12pt; margin-top: 12px; margin-bottom: 6px; padding-left: 0 }
+ul li pre    { font-family: Courier New; font-size: 9pt; background-color: #CCFFCC; 
+               margin-left: 0px; margin-right: 0px; margin-top: 6pt }
+ul li ul     { margin-left: 0pt; margin-top: 6pt; margin-bottom: 6pt; padding-left: 0 }
+ul li ul li  { margin-top: 3pt; margin-bottom: 3pt }
+ul li ol     { margin-left: 12pt; margin-top: 6pt; margin-bottom: 6pt; padding-left: 0 }
+ul li ol li  { margin-top: 3pt; margin-bottom: 3pt }
+
+table        { font-size: 100%; border-width: 0; padding: 0 }
+th           { color: #FFFFFF; background-color: #000080; text-align: left; vertical-align: 
+               bottom; padding-right: 6pt }
+tr           { text-align: left; vertical-align: top }
+td           { text-align: left; vertical-align: top; padding-right: 6pt }
+/*-----------------------------------------------------------
+Keil Table Tags
+-----------------------------------------------------------*/
+table.kt     { width: 100%; border: 1pt solid #000000 }
+th.kt        { white-space: nowrap; border-bottom: 1pt solid #000000; padding-left: 6pt; 
+               padding-right: 6pt; padding-top: 4pt; padding-bottom: 4pt }
+tr.kt        {  }
+td.kt        { color: #000000; background-color: #E0E0E0; border-top: 1pt solid #A0A0A0; 
+               padding-left: 6pt; padding-right: 6pt; padding-top: 2pt; 
+               padding-bottom: 2pt }
+DIV.Section1 {
+	page: Section1
+}
+-->
+</style>
+</head>
+
+<body>
+
+<h1>CMSIS-DAP<br>
+<font size="2">Version 0.01 - Beta - Release Notes</font></h1>
+
+<p align="center">This file contains release notes and last minute changes.</p>
+
+<p class="TinyT">Information in this file, the accompany manuals, and software
+is<br>
+Copyright © 2012 ARM Ltd.<br>
+All rights reserved.</p>
+
+<hr>
+
+    <p class="MsoNormal">
+        CMSIS-DAP Version 0.01 - Beta gives you a preview of the upcoming CMSIS-DAP 
+        Interface Firmware for the CoreSight Debug Access Port.</p>
+
+    <h2>Contents</h2>
+
+<ol>
+  <li class="LI2"><a href="#FolderStructure">Folder Structure</a></li>
+  <li class="LI2"><a href="#Using">Using Keil MDK as CMSIS-DAP Debugger</a></li>
+  <li class="LI2"><a href="#RDDI">RDDI-DAP Interface</a></li>
+  <li class="LI2"><a href="#ContactDetails">Contact Details</a></li>
+</ol>
+
+<h2><a name="FolderStructure"></a>Folder Structure</h2>
+
+<p>The following section describes the folder structure of the files distributed in this 
+    CMSIS-DAP release:</p>
+
+<table cellspacing="0" cellpadding="0" border="0" class="kt" width="100%">
+  <tr>
+    <th class="kt" style="text-align: center" width="10%">Folder</th>
+    <th class="kt" align="left">Description</th>
+  </tr>
+  <tr>
+    <td class="kt" style="text-align: center" width="10%">.\Firmware</td>
+    <td class="kt" align="left">CMSIS-DAP Firmware and reference implementations for 
+        various Debug Units.</td>
+  </tr>
+  <tr>
+    <td class="kt" style="text-align: center" width="10%">.\html</td>
+    <td class="kt" align="left"><a href="index.htm">Documentation of the CMSIS-DAP 
+        Firmware</a>.</td>
+  </tr>
+  <tr>
+    <td nowrap class="kt" style="text-align: center" width="10%">.\BIN</td>
+    <td class="kt" align="left">Add-on DLL&#39;s for Keil MDK V4.53. This folder will be 
+        removed in the final release as the DLL&#39;s will be part of MDK at that time.</td>
+  </tr>
+    <tr>
+    <td nowrap class="kt" style="text-align: center" width="10%">.\Validation</td>
+    <td class="kt" align="left">Validation Projects for various toolchains (currently 
+        only MDK validation is available).</td>
+    </tr>
+    <tr>
+    <td nowrap class="kt" style="text-align: center" width="10%">.\RDDI</td>
+    <td class="kt" align="left">RDDI-DAP Header Files and Interface. This folder will be 
+        removed in the final release as the RDDI-DAP documentation will be available 
+        separately.</td>
+    </tr>
+    </table>
+
+<a name="Using"><h2>Using Keil MDK as CMSIS-DAP Debugger</h2></a>
+
+    <p>The CMSIS-DAP Debugger is not yet part of Keil MDK-ARM and needs therefore added manually 
+        with the following steps:</p>
+    <ol>
+        <li>Copy DLLs from the folder <strong>.\CMSIS_DAP\BIN</strong> to the folder <strong>
+            \Keil\ARM\BIN</strong> of the Keil MDK-ARM Version 4.53 release. This adds the 
+            CMSIS_AGDI.DLL (AGDI Debugger Interface) and CMSIS_DAP.DLL (RDDI-DAP Access DLL) 
+            to the installation.</li>
+        <li>Add to the file <strong>\Keil\Tools.ini</strong> the <strong>TDRV<em>xx</em></strong> 
+            entries (whereby <em>xx</em> is number that is not yet used) to the sections <strong>[ARM]</strong> and 
+            <strong>[ARMADS]</strong> as shown below. The TDRV<em>xx</em> entry needs to be added also as parameter to <strong>
+            CPUDLL1=SARMCM3.DLL</strong>.
+
+<strong>Example:</strong>
+        
+<pre>[ARM]
+  :
+CPUDLL1=SARMCM3.DLL(TDRV1,TDRV3,TDRV4,TDRV5,TDRV6,TDRV8,TDRV9,TDRV10,TDRV11,TDRV12,TDRV13,<strong>TDRV14</strong>)    # Drivers for Cortex-M devices
+<strong>TDRV14=BIN\CMSIS_AGDI.dll("CMSIS-DAP Debugger")
+  :</strong>
+[ARMADS]
+  :
+CPUDLL1=SARMCM3.DLL(TDRV1,TDRV3,TDRV4,TDRV5,TDRV6,TDRV8,TDRV9,TDRV10,TDRV11,TDRV12,TDRV13,<strong>TDRV14</strong>)    # Drivers for Cortex-M devices
+<strong>TDRV14=BIN\CMSIS_AGDI.dll("CMSIS-DAP Debugger")</strong>
+</pre>
+        </li>
+    </ol>
+
+    <p>After these steps the <strong>CMSIS-DAP Debugger</strong> can be selected in µVision under the 
+        dialogs <strong>Project - Options - Debug</strong> and <strong>Project - Options 
+        - Utilities</strong> for Cortex-M processor-based projects. The debugger 
+        connects to a CMSIS-DAP Debug Unit and the features are similar to ULINK2.</p>
+
+<a name="RDDI"></a><h2>RDDI-DAP Interface</h2>
+
+<p>The RDDI-DAP Interface will be documented separately. To give CMSIS-DAP users a 
+    preview this CMSIS-DAP beta release contains the following files (which may be later part of 
+    the RDDI-DAP documentation):</p>
+
+<table cellspacing="0" cellpadding="0" border="0" class="kt" width="100%">
+  <tr>
+    <th class="kt" style="text-align: center" width="10%">File</th>
+    <th class="kt" align="left">Description</th>
+  </tr>
+  <tr>
+    <td class="kt" style="text-align: center" width="10%">.\RDDI\rddi.h</td>
+    <td class="kt" align="left">Definitions for the RDDI core functions (as needed for 
+        the RDDI-DAP interface).</td>
+  </tr>
+  <tr>
+    <td class="kt" style="text-align: center" width="10%">.\RDDI\rddi_dap.h</td>
+    <td class="kt" align="left">Definitions for the RDDI-DAP functions.</td>
+  </tr>
+  <tr>
+    <td class="kt" style="text-align: center" width="10%">.\RDDI\rddi_dap_cmsis.h</td>
+    <td class="kt" align="left">Definitions for the CMSIS-DAP specific extensions to RDDI-DAP.</td>
+  </tr>
+  <tr>
+    <td class="kt" style="text-align: center" width="10%">.\RDDI\Example\RDDI_DAP_IF.cpp</td>
+    <td class="kt" align="left">Source code example for accessing CMSIS-DAP using the 
+        RDDI-DAP complaint CMSIS_DAP.DLL.</td>
+  </tr>
+  <tr>
+    <td class="kt" style="text-align: center" width="10%">.\RDDI\Example\RDDI_DAP_IF.h</td>
+    <td class="kt" align="left">Definitions for the source code example RDDI_DAP_IF.cpp.</td>
+  </tr>
+
+    </table>
+
+<a name="ContactDetails"></a><h2>Contact Details</h2>
+
+<p>If you experience any problems or have any questions about CMSIS-DAP send feedback to <a href="mailto:cmsis@arm.com">cmsis@arm.com</a>.</p>
+
+<hr>
+
+<p class="TinyT">Copyright © 2012 ARM Ltd.
+All rights reserved.<br>
+Visit our web site at <a href="http://www.arm.com/cmsis" target="_blank">www.arm.com/cmsis</a>.</p>
+    <p class="TinyT">.</p>
+
+</body>
+
+</html>

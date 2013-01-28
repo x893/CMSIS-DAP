@@ -1,0 +1,8 @@
+The 'Blinky' project is a simple demo program for Freescale 'MK20' series 
+microcontroller using Freescale 'TWR-K20D50M' evaluation board populated with
+MK20DX128xxx5 device, compliant to CMSIS.
+
+Example functionality
+ - Core Clock runs at 41943040 Hz                                                   
+ - SysTick Timer is used in interrupt mode
+ - 2 LEDs (PTC.9,10) blink every 250 ms 
