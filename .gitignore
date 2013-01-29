@@ -180,4 +180,4 @@ pip-log.txt
 *.tra
 *.lnp
 *.axf
-build
+[Bb]uild/
