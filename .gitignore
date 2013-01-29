@@ -178,7 +178,6 @@ pip-log.txt
 *.__i
 *._ia
 *.tra
-# *.sct
 *.lnp
 *.axf
 build
