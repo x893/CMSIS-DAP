@@ -1,22 +1,11 @@
-/*----------------------------------------------------------------------------
- *      RL-ARM - USB
- *----------------------------------------------------------------------------
- *      Name:    usbd_user_hid.c
- *      Purpose: Human Interface Device Class User module
- *      Rev.:    V4.50
- *----------------------------------------------------------------------------
- *      This code is part of the RealView Run-Time Library.
- *      Copyright (c) 2004-2012 KEIL - An ARM Company. All rights reserved.
- *---------------------------------------------------------------------------*/
-
 #include <string.h>
 #include <RTL.h>
 #include <rl_usb.h>
 #include <..\..\RL\USB\INC\usb.h>
 
 #define __NO_USB_LIB_C
-
 #include "usb_config.c"
+
 #include "DAP_config.h"
 #include "..\DAP.h"
 
@@ -101,7 +90,6 @@ void usbd_hid_set_report (U8 rtype, U8 rid, U8 *buf, int len, U8 req)
 				pUserAppDescriptor->UserAbort();
 			break;
 		}
-
 		if (USB_RequestFlag && (USB_RequestIn == USB_RequestOut))
 			break;  // Discard packet when buffer is full
 
@@ -135,7 +123,8 @@ void usbd_hid_set_report (U8 rtype, U8 rid, U8 *buf, int len, U8 req)
 
 void HID_ProcessCommand(uint8_t *request, uint8_t *response)
 {
-	uint8_t result   = DAP_OK;
+
+	uint8_t result   = 0xFF; //! DAP_OK;
 	uint16_t data;
 	uint16_t length;
 	uint32_t address;
@@ -146,7 +135,7 @@ void HID_ProcessCommand(uint8_t *request, uint8_t *response)
 		*response++ = *request;
 		switch (*request++)
 		{
-		case HID_Command0:		/* Get device info */
+		case HID_Command0:		// Get device info
 			address = DBGMCU->IDCODE;
 			*response++ = (address >>  0) & 0xFF;
 			*response++ = (address >>  8) & 0xFF;
@@ -164,7 +153,7 @@ void HID_ProcessCommand(uint8_t *request, uint8_t *response)
 			if (FLASH_ErasePage(address) != FLASH_COMPLETE)
 				result = DAP_ERROR;
 			break;
-		case HID_Command4:		/* Check for blank (0xFF) */
+		case HID_Command4:		// Check for blank (0xFF)
 			{
 				p_address = PACK_DATA_PBYTE(0);
 				length  = PACK_DATA_WORD(4);
@@ -178,7 +167,7 @@ void HID_ProcessCommand(uint8_t *request, uint8_t *response)
 				}
 			}
 			break;
-		case HID_Command5:		/* Write to flash */
+		case HID_Command5:		// Write to flash
 			{
 				address = PACK_DATA_LONG(0);
 				length  = PACK_DATA_WORD(4);
@@ -205,7 +194,7 @@ void HID_ProcessCommand(uint8_t *request, uint8_t *response)
 				}
 			}
 			break;
-		case HID_Command6:		/* Read from flash */
+		case HID_Command6:		// Read from flash
 			{
 				p_address = PACK_DATA_PBYTE(0);
 				length  = PACK_DATA_WORD(4);
@@ -216,7 +205,7 @@ void HID_ProcessCommand(uint8_t *request, uint8_t *response)
 						*response++ = *p_address++;
 			}
 			break;
-		case HID_Command7:		/* Reset device */
+		case HID_Command7:		// Reset device
 			NVIC_SystemReset();
 			break;
 		default:

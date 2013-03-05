@@ -5,7 +5,7 @@
  *      Purpose: Hardware Layer Definitions for ST STM32F10x
  *----------------------------------------------------------------------------
  *      This code is part of the RealView Run-Time Library.
- *      Copyright (c) 2004-2011 KEIL - An ARM Company. All rights reserved.
+ *      Copyright (c) 2004-2013 KEIL - An ARM Company. All rights reserved.
  *---------------------------------------------------------------------------*/
 
 #ifndef __USBREG_H

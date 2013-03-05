@@ -53,7 +53,7 @@ Provides definitions about:
  - Optional information about a connected Target Device (for Evaluation Boards).
 */
 
-#include "stm32f10x.h"
+#include <stm32f10x.h>
 
 /// Processor Clock of the Cortex-M MCU used in the Debug Unit.
 /// This value is used to calculate the SWD/JTAG clock speed.
@@ -97,7 +97,7 @@ Provides definitions about:
 /// This configuration settings is used to optimized the communication performance with the
 /// debugger and depends on the USB peripheral. For devices with limited RAM or USB buffer the
 /// setting can be reduced (valid range is 1 .. 255). Change setting to 4 for High-Speed USB.
-#define DAP_PACKET_COUNT        64				///< Buffers: 64 = Full-Speed, 4 = High-Speed.
+#define DAP_PACKET_COUNT        32				///< Buffers: 64 = Full-Speed, 4 = High-Speed.
 
 
 /// Debug Unit is connected to fixed Target Device.
@@ -114,6 +114,20 @@ Provides definitions about:
 ///@}
 
 // Debug Port I/O Pins
+
+#define USART_GPIO_CLK2		RCC_APB2Periph_GPIOA
+#define USART_PORT			USART1
+#define USART_CLK2			RCC_APB2Periph_USART1
+#define USART_GPIO			GPIOA
+#define USART_TX_PIN		GPIO_Pin_9
+#define USART_RX_PIN		GPIO_Pin_10
+// #define USART_REMAP
+#define USART_IRQn			USART1_IRQn
+#define USART_IRQHandler	USART1_IRQHandler
+
+#define USART_BUFFER_SIZE	(128)	/*	Size of Receive and Transmit buffers
+										MUST BE 2^n
+									*/
 
 #define GPIO_INIT(port, data)	GPIO_Init(port, (GPIO_InitTypeDef *)&data)
 
@@ -160,20 +174,25 @@ Provides definitions about:
 #define LED_RUNNING_PIN			GPIO_Pin_12
 
 // USB Connect Pull-Up
-#define PIN_USB_CONNECT_RCC		RCC_APB2ENR_IOPAEN
-#define PIN_USB_CONNECT_PORT    GPIOA
-#define PIN_USB_CONNECT         GPIO_Pin_8
+#define PIN_USB_CONNECT_RCC		RCC_APB2ENR_IOPCEN
+#define PIN_USB_CONNECT_PORT    GPIOC
+#define PIN_USB_CONNECT         GPIO_Pin_12
 
 /* Control USB connecting via SW	*/
-#define PORT_USB_CONNECT_SETUP()				\
-	do {										\
-		RCC->APB2ENR |= PIN_USB_CONNECT_RCC;	\
-		PIN_USB_CONNECT_OFF();					\
-		PIN_USB_CONNECT_PORT->CRH = (PIN_USB_CONNECT_PORT->CRH & ~0x0000000F) | 0x00000003;	\
+#define PORT_USB_CONNECT_SETUP()					\
+	do {											\
+		const GPIO_InitTypeDef usb_disc_init = {	\
+			PIN_USB_CONNECT,						\
+			GPIO_Speed_2MHz,						\
+			GPIO_Mode_Out_OD						\
+		};											\
+		RCC->APB2ENR |= PIN_USB_CONNECT_RCC;		\
+		PIN_USB_CONNECT_OFF();						\
+		GPIO_INIT(PIN_USB_CONNECT_PORT, usb_disc_init);	\
 	} while (0)
 
-#define PIN_USB_CONNECT_ON()		PIN_USB_CONNECT_PORT->BSRR = PIN_USB_CONNECT
-#define PIN_USB_CONNECT_OFF()		PIN_USB_CONNECT_PORT->BRR  = PIN_USB_CONNECT
+#define PIN_USB_CONNECT_ON()		PIN_USB_CONNECT_PORT->BRR  = PIN_USB_CONNECT
+#define PIN_USB_CONNECT_OFF()		PIN_USB_CONNECT_PORT->BSRR = PIN_USB_CONNECT
 
 static __inline void LEDS_SETUP (void)
 {

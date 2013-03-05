@@ -180,4 +180,6 @@ pip-log.txt
 *.tra
 *.lnp
 *.axf
+*Log.txt
+*Settings.ini
 [Bb]uild/
