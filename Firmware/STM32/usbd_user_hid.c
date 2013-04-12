@@ -223,7 +223,7 @@ void HID_ProcessCommand(uint8_t *request, uint8_t *response)
 }
 
 // Process USB HID Data
-void usbd_hid_process (void)
+uint8_t usbd_hid_process (void)
 {
 	uint32_t n;
 
@@ -256,5 +256,7 @@ void usbd_hid_process (void)
 			if (USB_ResponseIn == USB_ResponseOut)
 				USB_ResponseFlag = 1;
 		}
+		return 1;
 	}
+	return 0;
 }

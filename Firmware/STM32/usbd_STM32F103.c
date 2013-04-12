@@ -15,7 +15,7 @@
 EP_BUF_DSCR *pBUF_DSCR = (EP_BUF_DSCR *)USB_PMA_ADDR; /* Ptr to EP Buf Desc   */
 
 U16 FreeBufAddr;                        /* Endpoint Free Buffer Address       */
-
+BOOL ESOF_Occured;
 
 /*
  *  Reset Endpoint
@@ -131,15 +131,18 @@ void USBD_Reset (void)
 			((USBD_RTX_DevTask   != 0) ? CNTR_ERRM    : 0) |
 			((USBD_RTX_DevTask   != 0) ? CNTR_PMAOVRM : 0) |
 			((USBD_RTX_DevTask   != 0) ? CNTR_SOFM    : 0) |
-			((USBD_RTX_DevTask   != 0) ? CNTR_ESOFM   : 0);
+			((USBD_RTX_DevTask   != 0) ? CNTR_ESOFM   : 0) |
+			0;
 #else
 			((USBD_P_Error_Event != 0) ? CNTR_ERRM    : 0) |
 			((USBD_P_Error_Event != 0) ? CNTR_PMAOVRM : 0) |
 			((USBD_P_SOF_Event   != 0) ? CNTR_SOFM    : 0) |
-			((USBD_P_SOF_Event   != 0) ? CNTR_ESOFM   : 0);
+			((USBD_P_SOF_Event   != 0) ? CNTR_ESOFM   : 0) |
+			0;
 #endif
 
 	FreeBufAddr = EP_BUF_ADDR;
+	ESOF_Occured = __FALSE;
 
 	BTABLE = 0x00;                        /* set BTABLE Address                 */
 
@@ -464,7 +467,7 @@ void USB_LP_CAN1_RX0_IRQHandler(void) {
 
 	istr = ISTR;
 
-	/* USB Reset Request                                                        */
+	/* USB Reset Request */
 	if (istr & ISTR_RESET) {
 		USBD_Reset();
 		usbd_reset_core();
@@ -480,7 +483,7 @@ void USB_LP_CAN1_RX0_IRQHandler(void) {
 		ISTR = ~ISTR_RESET;
 	}
 
-	/* USB Suspend Request                                                      */
+	/* USB Suspend Request */
 	if (istr & ISTR_SUSP) {
 		USBD_Suspend();
 #ifdef __RTX
@@ -495,7 +498,7 @@ void USB_LP_CAN1_RX0_IRQHandler(void) {
 		ISTR = ~ISTR_SUSP;
 	}
 
-	/* USB Wakeup                                                               */
+	/* USB Wakeup */
 	if (istr & ISTR_WKUP) {
 		USBD_WakeUp();
 #ifdef __RTX
@@ -510,7 +513,7 @@ void USB_LP_CAN1_RX0_IRQHandler(void) {
 		ISTR = ~ISTR_WKUP;
 	}
 
-	/* Start of Frame                                                           */
+	/* Start of Frame */
 	if (istr & ISTR_SOF) {
 #ifdef __RTX
 		if (USBD_RTX_DevTask) {
@@ -524,7 +527,27 @@ void USB_LP_CAN1_RX0_IRQHandler(void) {
 		ISTR = ~ISTR_SOF;
 	}
 
-	/* PMA Over/underrun                                                        */
+	/* Expected Start of Frame */
+	if (istr & ISTR_ESOF)
+	{
+		#warning "Check it !!!"
+		ESOF_Occured = __TRUE;
+		CNTR &= ~CNTR_ESOFM;
+		/*
+#ifdef __RTX
+		if (USBD_RTX_DevTask) {
+			isr_evt_set(USBD_EVT_RESUME,  USBD_RTX_DevTask);
+		}
+#else
+		if (USBD_P_Resume_Event) {
+			USBD_P_Resume_Event();
+		}
+#endif
+		*/
+		ISTR = ~ISTR_ESOF;
+	}
+
+	/* PMA Over/underrun */
 	if (istr & ISTR_PMAOVR) {
 #ifdef __RTX
 		LastError = 2;
@@ -539,7 +562,7 @@ void USB_LP_CAN1_RX0_IRQHandler(void) {
 		ISTR = ~ISTR_PMAOVR;
 	}
 
-	/* Error: No Answer, CRC Error, Bit Stuff Error, Frame Format Error         */
+	/* Error: No Answer, CRC Error, Bit Stuff Error, Frame Format Error */
 	if (istr & ISTR_ERR) {
 #ifdef __RTX
 		LastError = 1;
@@ -554,7 +577,7 @@ void USB_LP_CAN1_RX0_IRQHandler(void) {
 		ISTR = ~ISTR_ERR;
 	}
 
-	/* Endpoint Interrupts                                                      */
+	/* Endpoint Interrupts */
 	while ((istr = ISTR) & ISTR_CTR) {
 		ISTR = ~ISTR_CTR;
 

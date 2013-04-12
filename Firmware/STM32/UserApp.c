@@ -4,14 +4,11 @@
 #include "DAP_config.h"
 #include "../DAP.h"
 
-// extern uint32_t Image$$ER_USER$$Length;
-
 void UserAppInit(CoreDescriptor_t *core);
 void UserAppAbort(void);
 
 __attribute__((section("USERINIT")))
 const UserAppDescriptor_t UserAppDescriptor = {
-	// (uint32_t)&Image$$ER_USER$$Length,
 	&UserAppInit,
 	&DAP_ProcessCommand,
 	&UserAppAbort
