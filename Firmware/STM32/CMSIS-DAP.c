@@ -9,6 +9,8 @@
  *      Copyright (c) 2004-2013 KEIL - An ARM Company. All rights reserved.
  *----------------------------------------------------------------------------*/
 
+#define TIMEOUT_DELAY	200000
+
 #include <stdio.h>
 
 #include <RTL.h>
@@ -23,10 +25,11 @@
 
 #include "usbd_user_cdc_acm.h"
 
-void usbd_hid_process(void);
+uint8_t usbd_hid_process(void);
 void CheckUserApplication(void);
 void LedConnectedOn(void);
 void LedConnectedOff(void);
+void LedConnectedToggle(void);
 void LedRunningOn(void);
 void LedRunningOff(void);
 void LedRunningToggle(void);
@@ -43,7 +46,12 @@ const CoreDescriptor_t CoreDescriptor = {
 	&LedRunningOut,
 };
 
-volatile uint32_t led_count = 0;
+#if (USBD_CDC_ACM_ENABLE == 1)
+	int32_t usb_rx_ch;
+	int32_t usb_tx_ch;
+#endif
+uint32_t led_count;
+uint32_t led_timeout;
 
 #if (USBD_CDC_ACM_ENABLE == 1)
 
@@ -71,95 +79,164 @@ void NotifyOnStatusChange (void)
 
 #endif
 
-int main (void)
+void BoardInit(void)
 {
-#if (USBD_CDC_ACM_ENABLE == 1)
-	int32_t usb_rx_ch = -1;
-	int32_t usb_tx_ch = -1;
-#endif
+	const GPIO_InitTypeDef pins_A_init = {
+		~(GPIO_Pin_13 | GPIO_Pin_14),
+		GPIO_Speed_2MHz,
+		GPIO_Mode_IN_FLOATING
+	};
+	const GPIO_InitTypeDef pins_BC_init = {
+		GPIO_Pin_All,
+		GPIO_Speed_2MHz,
+		GPIO_Mode_IN_FLOATING
+	};
+	const GPIO_InitTypeDef pins_B34_init = {
+		GPIO_Pin_3 | GPIO_Pin_4,
+		GPIO_Speed_2MHz,
+		GPIO_Mode_IPD
+	};
+	const GPIO_InitTypeDef pins_A15_init = {
+		GPIO_Pin_15,
+		GPIO_Speed_2MHz,
+		GPIO_Mode_IPD
+	};
+
+	RCC->APB2ENR |= (RCC_APB2ENR_AFIOEN | RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN | RCC_APB2ENR_IOPCEN);
+	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
+
+	GPIO_INIT(GPIOA, pins_A_init);
+	GPIO_INIT(GPIOA, pins_A15_init);
+
+	GPIO_INIT(GPIOB, pins_BC_init);
+	GPIO_INIT(GPIOB, pins_B34_init);
 
 	LEDS_SETUP();
-	LedRunningOn();				// Turn on LEDs
-	LedConnectedOn();			// while not device configured
+}
 
+void USBD_Error_Event(void)
+{
+	LedConnectedOn();
+	LedRunningOn();
+
+	usbd_connect(__FALSE);
+	usbd_reset_core();
+
+	while(1);
+}
+
+int main (void)
+{
+	BoardInit();
+	LedConnectedOn();
 	if (UserAppDescriptor.UserInit != NULL)
 	{
 		pUserAppDescriptor = &UserAppDescriptor;
 		pUserAppDescriptor->UserInit((CoreDescriptor_t *)&CoreDescriptor);
 	}
 
-	usbd_init();                          /* USB Device Initialization          */
-	usbd_connect(__TRUE);                 /* USB Device Connect                 */
+	LedConnectedOff();
+	led_count = 0;
+	// Check for USB connected
+	while ((GPIOA->IDR & GPIO_Pin_11) != 0)
+	{
+		if (led_count++ == 0)
+			LedConnectedOn();
+		else if (led_count == 5)
+			LedConnectedOff();
+		else if (led_count == 25)
+			led_count = 0;
+		Delay_ms(10);
+	}
+	LedConnectedOff();
+
+	// USB Device Initialization and connect
+	usbd_init();
+	usbd_connect(__TRUE);
 
 	led_count = 0;
 	while (!usbd_configured())	// Wait for USB Device to configure
 	{
-		if (led_count++ == 1000000)
-		{
-			usbd_connect(__FALSE);
-			Delay_ms(100);
-			NVIC_SystemReset();
-		}
+		if (led_count++ == 0)
+			LedConnectedOn();
+		else if (led_count == 5)
+			LedConnectedOff();
+		else if (led_count == 100)
+			led_count = 0;
+		Delay_ms(10);
 	}
-	Delay_ms(10);				// Wait for 100ms
-	LedRunningOff();			// Turn off LEDs
 	LedConnectedOff();
+	Delay_ms(100);			// Wait for 100ms
+
 	led_count = 0;
+	led_timeout = TIMEOUT_DELAY;
+	usb_rx_ch = -1;
+	usb_tx_ch = -1;
 
 	while (1)
 	{
-		usbd_hid_process();
-
-		if (pUserAppDescriptor == NULL
-		&&	led_count++ == 50000)
+		if (pUserAppDescriptor == NULL)
+		{	// No user application
+			if (led_count++ == 1000000)
+			{
+				led_count = 0;
+				LedConnectedToggle();
+			}
+			usbd_hid_process();
+		}
+		else if (!usbd_hid_process())
 		{
-			led_count = 0;
-			LedRunningToggle();
+			// No packet processing
+			if (led_timeout == 500)
+			{
+				LedConnectedOn();
+			}
+			else if (led_timeout == 0)
+			{
+				LedConnectedOff();
+				led_timeout = TIMEOUT_DELAY;
+			}
+			led_timeout--;
+			
+		}
+		else
+		{
+			led_timeout = TIMEOUT_DELAY;
 		}
 
 #if (USBD_CDC_ACM_ENABLE == 1)
+
 		NotifyOnStatusChange();
 
 		// USB -> UART
 		if (usb_rx_ch == -1)
-		{
 			usb_rx_ch = USBD_CDC_ACM_GetChar ();
-		}
+
 		if (usb_rx_ch != -1)
 		{
 			if (UART_PutChar (usb_rx_ch) == usb_rx_ch)
-			{
 				usb_rx_ch = -1;
-			}
 		}
 
 		// UART -> USB
 		if (usb_tx_ch == -1)
-		{
 			usb_tx_ch = UART_GetChar ();
-		}
+
 		if (usb_tx_ch != -1)
 		{
 			if (USBD_CDC_ACM_PutChar (usb_tx_ch) == usb_tx_ch)
-			{
 				usb_tx_ch = -1;
-			}
 		}
 #endif
 	}
 }
 
-void LedConnectedOn(void)	{	LED_CONNECTED_PORT->BSRR = LED_CONNECTED_PIN;	}
-void LedConnectedOff(void)	{	LED_CONNECTED_PORT->BRR  = LED_CONNECTED_PIN;	}
-void LedRunningOn(void)		{	LED_RUNNING_PORT->BSRR   = LED_RUNNING_PIN;		}
-void LedRunningOff(void)	{	LED_RUNNING_PORT->BRR    = LED_RUNNING_PIN;		}
-void LedRunningToggle(void)
-{
-	if ((LED_RUNNING_PORT->ODR & LED_RUNNING_PIN) == 0)
-		LedRunningOn();
-	else
-		LedRunningOff();
-}
+void LedConnectedOn(void)		{	LED_CONNECTED_PORT->BSRR = LED_CONNECTED_PIN;	}
+void LedConnectedOff(void)		{	LED_CONNECTED_PORT->BRR  = LED_CONNECTED_PIN;	}
+void LedConnectedToggle(void)	{	LED_CONNECTED_PORT->ODR ^= LED_CONNECTED_PIN;	}
+void LedRunningOn(void)			{	LED_RUNNING_PORT->BSRR   = LED_RUNNING_PIN;		}
+void LedRunningOff(void)		{	LED_RUNNING_PORT->BRR    = LED_RUNNING_PIN;		}
+void LedRunningToggle(void)		{	LED_RUNNING_PORT->ODR   ^= LED_RUNNING_PIN;		}
 
 void LedConnectedOut(uint16_t bit)
 {
@@ -176,7 +253,7 @@ void LedRunningOut(uint16_t bit)
 //    delay:  delay time in ms
 void Delay_ms(uint32_t delay)
 {
-	delay *= (CPU_CLOCK / 1000 + (DELAY_SLOW_CYCLES - 1)) / DELAY_SLOW_CYCLES;
+	delay *= (CPU_CLOCK / 1000 + (DELAY_SLOW_CYCLES - 1)) / (2 * DELAY_SLOW_CYCLES);
 	PIN_DELAY_SLOW(delay);
 }
 
