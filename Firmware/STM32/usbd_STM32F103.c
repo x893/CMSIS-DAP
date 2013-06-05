@@ -85,8 +85,8 @@ void          USBD_IntrEna (void) {
 
 void USBD_Init (void)
 {
-	RCC->APB1ENR |= (1 << 23);            /* enable clock for USB               */
-	USBD_IntrEna ();                      /* Enable USB Interrupts              */
+	RCC->APB1ENR |= RCC_APB1ENR_USBEN;	// enable clock for USB
+	USBD_IntrEna ();					// Enable USB Interrupts
 	PORT_USB_CONNECT_SETUP();
 }
 
@@ -530,7 +530,7 @@ void USB_LP_CAN1_RX0_IRQHandler(void) {
 	/* Expected Start of Frame */
 	if (istr & ISTR_ESOF)
 	{
-		#warning "Check it !!!"
+		#warning "SOF reset !!!"
 		ESOF_Occured = __TRUE;
 		CNTR &= ~CNTR_ESOFM;
 		/*

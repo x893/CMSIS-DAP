@@ -10,11 +10,11 @@
 #include "usbd_user_cdc_acm.h"
 
 static struct {
-				uint8_t  data[USART_BUFFER_SIZE];
-	volatile	uint16_t idx_in;
-	volatile	uint16_t idx_out;
-	volatile	int16_t cnt_in;
-	volatile	int16_t cnt_out;
+			uint8_t		data[USART_BUFFER_SIZE];
+	volatile uint16_t	idx_in;
+	volatile uint16_t	idx_out;
+	volatile int16_t	cnt_in;
+	volatile int16_t	cnt_out;
 } WrBuffer, RdBuffer;
 
 static USART_InitTypeDef UART_Config;
@@ -63,8 +63,8 @@ int32_t UART_Reset (void)
 
 int32_t USBD_CDC_ACM_PortInitialize (void)
 {
-	const GPIO_InitTypeDef rx_init		= {	USART_RX_PIN,	GPIO_Speed_50MHz,	GPIO_Mode_IPU	};
-	const GPIO_InitTypeDef tx_init		= {	USART_TX_PIN,	GPIO_Speed_50MHz,	GPIO_Mode_AF_PP	};
+	const GPIO_InitTypeDef rx_init = {	USART_RX_PIN,	GPIO_Speed_50MHz,	GPIO_Mode_IPU	};
+	const GPIO_InitTypeDef tx_init = {	USART_TX_PIN,	GPIO_Speed_50MHz,	GPIO_Mode_AF_PP	};
 
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 
@@ -105,11 +105,11 @@ int32_t USBD_CDC_ACM_PortInitialize (void)
  */
 int32_t USBD_CDC_ACM_PortUninitialize (void)
 { 
-	const GPIO_InitTypeDef rx_deinit	= {	USART_RX_PIN,	GPIO_Speed_50MHz,	GPIO_Mode_IN_FLOATING	};
-	const GPIO_InitTypeDef tx_deinit	= {	USART_TX_PIN,	GPIO_Speed_50MHz,	GPIO_Mode_IN_FLOATING	};
+	const GPIO_InitTypeDef rx_deinit = {	USART_RX_PIN,	GPIO_Speed_50MHz,	GPIO_Mode_AIN	};
+	const GPIO_InitTypeDef tx_deinit = {	USART_TX_PIN,	GPIO_Speed_50MHz,	GPIO_Mode_AIN	};
 
 #if   defined ( USART_CLK2 )
-	RCC_APB2PeriphClockCmd(USART_CLK2, DISABLE); 
+	RCC_APB2PeriphClockCmd(USART_CLK2, DISABLE);
 #elif defined ( USART_CLK1 )
 	RCC_APB1PeriphClockCmd(USART_CLK1, DISABLE);
 #else

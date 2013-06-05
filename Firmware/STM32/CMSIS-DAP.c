@@ -37,6 +37,9 @@ void LedConnectedOut(uint16_t bit);
 void LedRunningOut(uint16_t bit);
 void Delay_ms(uint32_t delay);
 
+void NotifyOnStatusChange (void);
+void BoardInit(void);
+
 extern const UserAppDescriptor_t UserAppDescriptor;
 
 UserAppDescriptor_t * pUserAppDescriptor = NULL;
@@ -53,89 +56,19 @@ const CoreDescriptor_t CoreDescriptor = {
 uint32_t led_count;
 uint32_t led_timeout;
 
-#if (USBD_CDC_ACM_ENABLE == 1)
-
-/* Check if status has changed and if so, send notify to USB Host on Int EP   */
-void NotifyOnStatusChange (void)
-{
-	static int32_t old_notify = -1;
-	int32_t stat, com_err, notify;
-
-	stat    = UART_GetStatusLineState();
-	com_err = UART_GetCommunicationErrorStatus();
-	notify = (((com_err & UART_OVERRUN_ERROR_Msk) == UART_OVERRUN_ERROR_Msk)  << CDC_SERIAL_STATE_OVERRUN_Pos)    |
-			(((com_err & UART_PARITY_ERROR_Msk ) == UART_PARITY_ERROR_Msk )   << CDC_SERIAL_STATE_PARITY_Pos )    |
-			(((com_err & UART_FRAMING_ERROR_Msk) == UART_FRAMING_ERROR_Msk)   << CDC_SERIAL_STATE_FRAMING_Pos)    |
-			(((stat & UART_STATUS_LINE_RI_Msk )  == UART_STATUS_LINE_RI_Msk)  << CDC_SERIAL_STATE_RING_Pos   )    |
-			(UART_GetBreak() << CDC_SERIAL_STATE_BREAK_Pos)                                                   |
-			(((stat & UART_STATUS_LINE_DSR_Msk)  == UART_STATUS_LINE_DSR_Msk) << CDC_SERIAL_STATE_TX_CARRIER_Pos) |
-			(((stat & UART_STATUS_LINE_DCD_Msk)  == UART_STATUS_LINE_DCD_Msk) << CDC_SERIAL_STATE_RX_CARRIER_Pos) ;
-	if (notify ^ old_notify)
-	{	// If notify changed
-		if (USBD_CDC_ACM_Notify (notify))   // Send new notification
-			old_notify = notify;
-	}
-}
-
-#endif
-
-void BoardInit(void)
-{
-	const GPIO_InitTypeDef pins_A_init = {
-		~(GPIO_Pin_13 | GPIO_Pin_14),
-		GPIO_Speed_2MHz,
-		GPIO_Mode_IN_FLOATING
-	};
-	const GPIO_InitTypeDef pins_BC_init = {
-		GPIO_Pin_All,
-		GPIO_Speed_2MHz,
-		GPIO_Mode_IN_FLOATING
-	};
-	const GPIO_InitTypeDef pins_B34_init = {
-		GPIO_Pin_3 | GPIO_Pin_4,
-		GPIO_Speed_2MHz,
-		GPIO_Mode_IPD
-	};
-	const GPIO_InitTypeDef pins_A15_init = {
-		GPIO_Pin_15,
-		GPIO_Speed_2MHz,
-		GPIO_Mode_IPD
-	};
-
-	RCC->APB2ENR |= (RCC_APB2ENR_AFIOEN | RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN | RCC_APB2ENR_IOPCEN);
-	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
-
-	GPIO_INIT(GPIOA, pins_A_init);
-	GPIO_INIT(GPIOA, pins_A15_init);
-
-	GPIO_INIT(GPIOB, pins_BC_init);
-	GPIO_INIT(GPIOB, pins_B34_init);
-
-	LEDS_SETUP();
-}
-
-void USBD_Error_Event(void)
-{
-	LedConnectedOn();
-	LedRunningOn();
-
-	usbd_connect(__FALSE);
-	usbd_reset_core();
-
-	while(1);
-}
-
 int main (void)
 {
 	BoardInit();
+	SystemCoreClockUpdate();
+
 	LedConnectedOn();
 	if (UserAppDescriptor.UserInit != NULL)
 	{
 		pUserAppDescriptor = &UserAppDescriptor;
 		pUserAppDescriptor->UserInit((CoreDescriptor_t *)&CoreDescriptor);
 	}
-
 	LedConnectedOff();
+
 	led_count = 0;
 	// Check for USB connected
 	while ((GPIOA->IDR & GPIO_Pin_11) != 0)
@@ -166,7 +99,7 @@ int main (void)
 		Delay_ms(10);
 	}
 	LedConnectedOff();
-	Delay_ms(100);			// Wait for 100ms
+	Delay_ms(100);				// Wait for 100ms
 
 	led_count = 0;
 	led_timeout = TIMEOUT_DELAY;
@@ -210,7 +143,7 @@ int main (void)
 
 		// USB -> UART
 		if (usb_rx_ch == -1)
-			usb_rx_ch = USBD_CDC_ACM_GetChar ();
+			usb_rx_ch = USBD_CDC_ACM_GetChar();
 
 		if (usb_rx_ch != -1)
 		{
@@ -220,11 +153,11 @@ int main (void)
 
 		// UART -> USB
 		if (usb_tx_ch == -1)
-			usb_tx_ch = UART_GetChar ();
+			usb_tx_ch = UART_GetChar();
 
 		if (usb_tx_ch != -1)
 		{
-			if (USBD_CDC_ACM_PutChar (usb_tx_ch) == usb_tx_ch)
+			if (USBD_CDC_ACM_PutChar(usb_tx_ch) == usb_tx_ch)
 				usb_tx_ch = -1;
 		}
 #endif
@@ -234,9 +167,23 @@ int main (void)
 void LedConnectedOn(void)		{	LED_CONNECTED_PORT->BSRR = LED_CONNECTED_PIN;	}
 void LedConnectedOff(void)		{	LED_CONNECTED_PORT->BRR  = LED_CONNECTED_PIN;	}
 void LedConnectedToggle(void)	{	LED_CONNECTED_PORT->ODR ^= LED_CONNECTED_PIN;	}
+
 void LedRunningOn(void)			{	LED_RUNNING_PORT->BSRR   = LED_RUNNING_PIN;		}
 void LedRunningOff(void)		{	LED_RUNNING_PORT->BRR    = LED_RUNNING_PIN;		}
 void LedRunningToggle(void)		{	LED_RUNNING_PORT->ODR   ^= LED_RUNNING_PIN;		}
+
+const GPIO_InitTypeDef INIT_PINS_LED = {
+	(LED_CONNECTED_PIN | LED_RUNNING_PIN),
+	GPIO_Speed_2MHz,
+	GPIO_Mode_Out_PP
+};
+
+void LEDS_SETUP (void)
+{
+	RCC->APB2ENR |= LED_CONNECTED_RCC;
+	LED_CONNECTED_PORT->BRR = (LED_CONNECTED_PIN | LED_RUNNING_PIN);
+	GPIO_INIT(LED_CONNECTED_PORT, INIT_PINS_LED);
+}
 
 void LedConnectedOut(uint16_t bit)
 {
@@ -279,4 +226,211 @@ void HardFault_Handler(void)
 		LedConnectedOff();
 		Delay_ms(500);		// Wait for 500ms
 	}
+}
+
+
+/* Control USB connecting via SW	*/
+const GPIO_InitTypeDef INIT_PIN_USB_CONNECT = {
+	PIN_USB_CONNECT,
+	GPIO_Speed_2MHz,
+	PIN_USB_MODE
+};
+void PORT_USB_CONNECT_SETUP(void)
+{
+	RCC->APB2ENR |= PIN_USB_CONNECT_RCC;
+	PIN_USB_CONNECT_OFF();
+	GPIO_INIT(PIN_USB_CONNECT_PORT, INIT_PIN_USB_CONNECT);
+}
+
+void send_char(char ch)
+{
+	if (ch == '\n')
+		send_char('\r');
+	while (USBD_CDC_ACM_PutChar(ch) != ch)
+	{ }
+}
+
+PUTCHAR_PROTOTYPE
+{
+	send_char(ch);
+	return ch;
+}
+
+
+#if ( DAP_SWD != 0 )
+
+	#if ( DAP_JTAG != 0 )
+	const GPIO_InitTypeDef INIT_SWD_TDx = {
+		PIN_TDI | PIN_TDO,
+		(GPIOSpeed_TypeDef)0,
+		GPIO_Mode_IN_FLOATING
+	};
+	#endif
+
+	const GPIO_InitTypeDef INIT_SWD_PINS = {
+		PIN_SWCLK_TCK | PIN_SWDIO_TMS,
+		GPIO_Speed_50MHz,
+		GPIO_Mode_Out_PP
+	};
+	const GPIO_InitTypeDef INIT_SWD_RESET = {
+		PIN_nRESET,
+		GPIO_Speed_50MHz,
+		GPIO_Mode_Out_OD
+	};
+
+	/** Setup SWD I/O pins: SWCLK, SWDIO, and nRESET.
+	Configures the DAP Hardware I/O pins for Serial Wire Debug (SWD) mode:
+	 - SWCLK, SWDIO, nRESET to output mode and set to default high level.
+	 - TDI, TDO, nTRST to HighZ mode (pins are unused in SWD mode).
+	*/ 
+	void PORT_SWD_SETUP()
+	{
+		PIN_SWCLK_TCK_PORT->BSRR = (PIN_SWCLK_TCK | PIN_SWDIO_TMS);
+		PIN_nRESET_OUT(0);
+
+	#if ( DAP_JTAG != 0 )
+		GPIO_INIT(PIN_TDI_PORT,       INIT_SWD_TDx);
+	#endif
+		GPIO_INIT(PIN_SWCLK_TCK_PORT, INIT_SWD_PINS);
+		GPIO_INIT(PIN_nRESET_PORT,    INIT_SWD_RESET);
+	}
+#endif
+
+#if ( DAP_JTAG != 0 )
+	const GPIO_InitTypeDef jtag_init_in = {
+		PIN_TDO,
+		(GPIOSpeed_TypeDef)0,
+		GPIO_Mode_IPU
+	};
+	const GPIO_InitTypeDef jtag_init_out = {
+		PIN_SWCLK_TCK | PIN_SWDIO_TMS | PIN_TDI,
+		GPIO_Speed_50MHz,
+		GPIO_Mode_Out_PP
+	};
+	const GPIO_InitTypeDef jtag_init_reset = {
+		PIN_nRESET,
+		GPIO_Speed_50MHz,
+		GPIO_Mode_Out_OD
+	};
+
+	/** Setup JTAG I/O pins: TCK, TMS, TDI, TDO, nTRST, and nRESET.
+	Configures the DAP Hardware I/O pins for JTAG mode:
+	 - TCK, TMS, TDI, nTRST, nRESET to output mode and set to high level.
+	 - TDO to input mode.
+	*/ 
+	void PORT_JTAG_SETUP()
+	{
+		PIN_SWCLK_TCK_PORT->BSRR = PIN_SWCLK_TCK | PIN_SWDIO_TMS | PIN_TDI | PIN_TDO;
+		PIN_nRESET_PORT->BSRR = PIN_nRESET;
+
+		GPIO_INIT(PIN_TDO_PORT,       jtag_init_in);
+		GPIO_INIT(PIN_SWCLK_TCK_PORT, jtag_init_out);
+		GPIO_INIT(PIN_nRESET_PORT,    jtag_init_reset);
+	}
+#endif
+
+const GPIO_InitTypeDef port_off_all = {
+	(PIN_SWCLK_TCK | PIN_SWDIO_TMS
+#if ( DAP_JTAG != 0 )
+	| PIN_TDI | PIN_TDO
+#endif
+	),
+	(GPIOSpeed_TypeDef)0,
+	GPIO_Mode_IN_FLOATING
+};
+const GPIO_InitTypeDef port_off_reset = {
+	(PIN_nRESET),
+	(GPIOSpeed_TypeDef)0,
+	GPIO_Mode_IN_FLOATING
+};
+
+/** Disable JTAG/SWD I/O Pins.
+Disables the DAP Hardware I/O pins which configures:
+ - TCK/SWCLK, TMS/SWDIO, TDI, TDO, nTRST, nRESET to High-Z mode.
+*/
+void PORT_OFF()
+{
+	GPIO_INIT(PIN_SWCLK_TCK_PORT, port_off_all);
+	GPIO_INIT(PIN_nRESET_PORT,    port_off_reset);
+}
+
+#if (USBD_CDC_ACM_ENABLE == 1)
+
+/* Check if status has changed and if so, send notify to USB Host on Int EP   */
+void NotifyOnStatusChange (void)
+{
+	static int32_t old_notify = -1;
+	int32_t status, notify = 0;
+
+	status = UART_GetCommunicationErrorStatus();
+
+	if ((status & UART_OVERRUN_ERROR_Msk) == UART_OVERRUN_ERROR_Msk)
+		notify |= CDC_SERIAL_STATE_OVERRUN;
+	if ((status & UART_PARITY_ERROR_Msk ) == UART_PARITY_ERROR_Msk )
+		notify |= CDC_SERIAL_STATE_OVERRUN;
+	if ((status & UART_FRAMING_ERROR_Msk) == UART_FRAMING_ERROR_Msk)
+		notify |= CDC_SERIAL_STATE_FRAMING;
+	
+	status	= UART_GetStatusLineState();	
+	
+	if ((status & UART_STATUS_LINE_RI_Msk )  == UART_STATUS_LINE_RI_Msk)
+		notify |= CDC_SERIAL_STATE_RING;
+	if ((status & UART_STATUS_LINE_DSR_Msk)  == UART_STATUS_LINE_DSR_Msk)
+		notify |= CDC_SERIAL_STATE_TX_CARRIER;
+	if ((status & UART_STATUS_LINE_DCD_Msk)  == UART_STATUS_LINE_DCD_Msk)
+		notify |= CDC_SERIAL_STATE_RX_CARRIER;
+	
+	if (UART_GetBreak())
+		notify |= CDC_SERIAL_STATE_BREAK;
+	
+	if (notify ^ old_notify)				// If notify changed
+		if (USBD_CDC_ACM_Notify (notify))   // Send new notification
+			old_notify = notify;
+}
+
+#endif
+
+const GPIO_InitTypeDef INIT_PINS_A = {
+	// SWDIO, SWDCLK, USB_DP, USB_DM
+	(uint16_t)~(GPIO_Pin_15 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_12 | GPIO_Pin_11),
+	GPIO_Speed_2MHz,
+	GPIO_Mode_AIN
+};
+const GPIO_InitTypeDef INIT_PINS_BC = {
+	GPIO_Pin_All,
+	GPIO_Speed_2MHz,
+	GPIO_Mode_AIN
+};
+
+const GPIO_InitTypeDef INIT_PINS_B3_B4 = {
+	GPIO_Pin_3 | GPIO_Pin_4,
+	GPIO_Speed_2MHz,
+	GPIO_Mode_IPD
+};
+	
+
+void BoardInit(void)
+{
+	// Enable GPIOA-GPIOC
+	RCC->APB2ENR |= (RCC_APB2ENR_AFIOEN | RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN | RCC_APB2ENR_IOPCEN);
+	// Enable SWJ only
+	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
+
+	GPIO_INIT(GPIOA, INIT_PINS_A);
+	GPIO_INIT(GPIOB, INIT_PINS_BC);
+	GPIO_INIT(GPIOC, INIT_PINS_BC);
+	GPIO_INIT(GPIOB, INIT_PINS_B3_B4);
+
+	LEDS_SETUP();
+}
+
+void USBD_Error_Event(void)
+{
+	LedConnectedOn();
+	LedRunningOn();
+
+	usbd_connect(__FALSE);
+	usbd_reset_core();
+
+	while(1);
 }

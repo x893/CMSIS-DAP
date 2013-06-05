@@ -23,22 +23,61 @@
 #ifndef __DAP_CONFIG_H__
 #define __DAP_CONFIG_H__
 
+#include <stdio.h>
 #include <stddef.h>
 #include <stdint.h>
 
-typedef const struct {
+typedef const struct
+{
 	void	(* LED_CONNECTED)	(uint16_t);
 	void	(* LED_RUNNING)		(uint16_t);
 } CoreDescriptor_t;
 
 extern const CoreDescriptor_t * pCoreDescriptor;
 
-typedef const struct {
+typedef const struct
+{
 	void		(* UserInit)	(CoreDescriptor_t * core);
 	uint32_t	(* UserProcess)	(uint8_t *, uint8_t *);
 	void		(* UserAbort)	(void);
 } UserAppDescriptor_t;
 
+
+#if !defined ( BOARD_V1 ) && !defined ( BOARD_V2 ) && !defined ( BOARD_STM32RF )
+	#error "Board undefined"
+#endif
+
+#if   defined( __GNUC__ )
+	/*	With GCC/RAISONANCE, small printf (option LD Linker->Libraries->Small printf
+		set to 'Yes') calls __io_putchar() */
+	#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+#elif defined( __CC_ARM )
+	#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+#else
+	#error "Unknown compiler"
+#endif
+
+#ifdef USE_DEBUG
+	#define DEBUG(...)	printf(__VA_ARGS__)
+	#define INFO(...)	printf(__VA_ARGS__)
+	#define ERROR(...)	printf(__VA_ARGS__)
+#else
+#ifdef USE_INFO
+	#define DEBUG(...)
+	#define INFO(...)	printf(__VA_ARGS__)
+	#define ERROR(...)	printf(__VA_ARGS__)
+#else
+#ifdef USE_ERROR
+	#define DEBUG(...)
+	#define INFO(...)
+	#define ERROR(...)	printf(__VA_ARGS__)
+#else
+	#define DEBUG(...)
+	#define INFO(...)
+	#define ERROR(...)
+#endif
+#endif
+#endif
 
 //**************************************************************************************************
 /** 
@@ -56,7 +95,7 @@ Provides definitions about:
 
 /// Processor Clock of the Cortex-M MCU used in the Debug Unit.
 /// This value is used to calculate the SWD/JTAG clock speed.
-#define CPU_CLOCK               72000000       ///< Specifies the CPU Clock in Hz
+#define CPU_CLOCK				SystemCoreClock		///< Specifies the CPU Clock in Hz
 
 /// Number of processor cycles for I/O Port write operations.
 /// This value is used to calculate the SWD/JTAG clock speed that is generated with I/O
@@ -64,7 +103,7 @@ Provides definitions about:
 /// requrie 2 processor cycles for a I/O Port Write operation.  If the Debug Unit uses
 /// a Cortex-M0+ processor with high-speed peripheral I/O only 1 processor cycle might be 
 /// requrired.
-#define IO_PORT_WRITE_CYCLES    2               ///< I/O Cycles: 2=default, 1=Cortex-M0+ fast I/0
+#define IO_PORT_WRITE_CYCLES	2               ///< I/O Cycles: 2=default, 1=Cortex-M0+ fast I/0
 
 /// Indicate that Serial Wire Debug (SWD) communication mode is available at the Debug Access Port.
 /// This information is returned by the command \ref DAP_Info as part of <b>Capabilities</b>.
@@ -72,7 +111,11 @@ Provides definitions about:
 
 /// Indicate that JTAG communication mode is available at the Debug Port.
 /// This information is returned by the command \ref DAP_Info as part of <b>Capabilities</b>.
-#define DAP_JTAG                1               ///< JTAG Mode: 1 = available, 0 = not available.
+#if defined ( BOARD_STM32RF )
+	#define DAP_JTAG			0				///< JTAG Mode: 1 = available, 0 = not available.
+#else
+	#define DAP_JTAG			1				///< JTAG Mode: 1 = available, 0 = not available.
+#endif
 
 /// Configure maximum number of JTAG devices on the scan chain connected to the Debug Access Port.
 /// This setting impacts the RAM requirements of the Debug Unit. Valid range is 1 .. 255.
@@ -113,10 +156,13 @@ Provides definitions about:
 ///@}
 
 #define GPIO_INIT(port, data)	GPIO_Init(port, (GPIO_InitTypeDef *)&data)
+#define PIN_MODE_MASK(pin)		(((uint32_t)0x0F) << (pin * 4))
+#define PIN_MODE(mode,pin)		(((uint32_t)mode) << (pin * 4))
+#define PIN_MASK(pin)			(((uint16_t)1) << pin)
 
 // Debug Port I/O Pins
 
-#if defined ( BOARD_V1 ) || defined ( BOARD_V2 )
+#if defined ( BOARD_V1 ) || defined ( BOARD_V2 ) || defined ( BOARD_STM32RF )
 	#define USART_GPIO_CLK2		RCC_APB2Periph_GPIOA
 	#define USART_PORT			USART1
 	#define USART_CLK2			RCC_APB2Periph_USART1
@@ -130,74 +176,66 @@ Provides definitions about:
 #endif
 
 // SWCLK/TCK Pin
-#if   defined ( BOARD_V1 )
-	#define PIN_SWCLK_TCK_PORT		GPIOA
-	#define PIN_SWCLK_TCK			GPIO_Pin_4
-#elif defined ( BOARD_V2 )
-	#define PIN_SWCLK_TCK_PORT		GPIOA
-	#define PIN_SWCLK_TCK			GPIO_Pin_5
-#endif
-
 // SWDIO/TMS Pin
-#if defined ( BOARD_V1 )
+#if   defined ( BOARD_V1 )
 
 	#define PIN_SWDIO_TMS_PORT      GPIOA
-	#define PIN_SWDIO_TMS			GPIO_Pin_2
+	#define PIN_SWDIO_TMS_PIN		2
 
-	//	For fast switch between input and output mode
-	//	without GPIO_Init call
-	#define PIN_SWDIO_TMS_OUT_DISABLE()					\
-		do {											\
-			PIN_SWDIO_TMS_PORT->CRL = (PIN_SWDIO_TMS_PORT->CRL & ~0x00000F00) | 0x00000800;	\
-			PIN_SWDIO_TMS_PORT->BSRR = PIN_SWDIO_TMS;	\
-		} while (0)
-
-	#define PIN_SWDIO_TMS_OUT_ENABLE()					\
-		do {											\
-			PIN_SWDIO_TMS_PORT->CRL = (PIN_SWDIO_TMS_PORT->CRL & ~0x00000F00) | 0x00000300;	\
-			PIN_SWDIO_TMS_PORT->BRR  = PIN_SWDIO_TMS;	\
-		} while (0)
+	#define PIN_SWCLK_TCK_PORT		GPIOA
+	#define PIN_SWCLK_TCK_PIN		4
 
 #elif defined ( BOARD_V2 )
 
 	#define PIN_SWDIO_TMS_PORT		GPIOA
-	#define PIN_SWDIO_TMS			GPIO_Pin_4
-	#define PIN_SWDIO_TMS_OUT_DISABLE()					\
-		do {											\
-			PIN_SWDIO_TMS_PORT->CRL = (PIN_SWDIO_TMS_PORT->CRL & ~0x000F0000) | 0x00080000;	\
-			PIN_SWDIO_TMS_PORT->BSRR = PIN_SWDIO_TMS;	\
-		} while (0)
+	#define PIN_SWDIO_TMS_PIN		4
 
-	#define PIN_SWDIO_TMS_OUT_ENABLE()					\
-		do {											\
-			PIN_SWDIO_TMS_PORT->CRL = (PIN_SWDIO_TMS_PORT->CRL & ~0x000F0000) | 0x00030000;	\
-			PIN_SWDIO_TMS_PORT->BRR  = PIN_SWDIO_TMS;	\
-		} while (0)
+	#define PIN_SWCLK_TCK_PORT		GPIOA
+	#define PIN_SWCLK_TCK_PIN		5
+
+#elif defined ( BOARD_STM32RF )
+
+	#define PIN_SWDIO_TMS_PORT		GPIOA
+	#define PIN_SWDIO_TMS_PIN		6
+
+	#define PIN_SWCLK_TCK_PORT		GPIOA
+	#define PIN_SWCLK_TCK_PIN		7
 
 #endif
-		
-// TDI Pin (output)
-#if defined ( BOARD_V1 ) || defined ( BOARD_V2 )
-	#define PIN_TDI_PORT			GPIOA
-	#define PIN_TDI					GPIO_Pin_7
-#endif
 
-// TDO/SWO Pin (input)
 #if   defined ( BOARD_V1 )
+
+	// TDO/SWO Pin (input)
 	#define PIN_TDO_PORT            GPIOA
 	#define PIN_TDO					GPIO_Pin_5
+	// TDI Pin (output)
+	#define PIN_TDI_PORT			GPIOA
+	#define PIN_TDI					GPIO_Pin_7
+	// nRESET Pin
+	#define PIN_nRESET_PORT         GPIOA
+	#define PIN_nRESET				GPIO_Pin_6
+
 #elif defined ( BOARD_V2 )
+
+	// TDO/SWO Pin (input)
 	#define PIN_TDO_PORT            GPIOA
 	#define PIN_TDO					GPIO_Pin_6
-#endif
-
-// nRESET Pin
-#if   defined ( BOARD_V1 )
+	// TDI Pin (output)
+	#define PIN_TDI_PORT			GPIOA
+	#define PIN_TDI					GPIO_Pin_7
+	// nRESET Pin
 	#define PIN_nRESET_PORT         GPIOB
-	#define PIN_nRESET				GPIO_Pin_6
-#elif defined ( BOARD_V2 )
-	#define PIN_nRESET_PORT         GPIOA
-	#define PIN_nRESET				GPIO_Pin_2
+	#define PIN_nRESET				GPIO_Pin_9
+
+#elif defined ( BOARD_STM32RF )
+
+	// TDI Pin (output)
+	#define PIN_TDI_PORT			GPIOA
+	#define PIN_TDI					GPIO_Pin_7
+	// nRESET Pin
+	#define PIN_nRESET_PORT         GPIOB
+	#define PIN_nRESET				GPIO_Pin_9
+
 #endif
 
 // Debug Unit LEDs
@@ -214,69 +252,88 @@ Provides definitions about:
 	#define LED_RUNNING_PORT		GPIOB
 	#define LED_RUNNING_PIN			GPIO_Pin_12
 	
-	__STATIC_INLINE void LEDS_SETUP (void)
-	{
-		const GPIO_InitTypeDef ledInit = {
-			(LED_CONNECTED_PIN | LED_RUNNING_PIN),
-			GPIO_Speed_2MHz,
-			GPIO_Mode_Out_PP
-		};
+#elif defined ( BOARD_STM32RF )
 
-		/* Enable clock and init GPIO outputs */
-		RCC->APB2ENR |= LED_CONNECTED_RCC;
+	#define LED_CONNECTED_RCC		RCC_APB2ENR_IOPBEN
 
-		/* Configure: LED as output (turned off) */
-		LED_CONNECTED_PORT->BRR = (LED_CONNECTED_PIN | LED_RUNNING_PIN);
-		GPIO_Init(LED_CONNECTED_PORT, (GPIO_InitTypeDef *)&ledInit);
-	}
+	// Connected LED (GREEN)
+	#define LED_CONNECTED_PORT      GPIOB
+	#define LED_CONNECTED_PIN		GPIO_Pin_11
 
+	// Target Running LED (RED)
+	#define LED_RUNNING_PORT		GPIOB
+	#define LED_RUNNING_PIN			GPIO_Pin_12
+	
 #endif
-
+	
 // USB Connect Pull-Up
 #if   defined ( BOARD_V1 )
-	#define PIN_USB_CONNECT_RCC		RCC_APB2ENR_IOPCEN
-	#define PIN_USB_CONNECT_PORT    GPIOC
-	#define PIN_USB_CONNECT         GPIO_Pin_12
 
-	#define PIN_USB_CONNECT_ON()		PIN_USB_CONNECT_PORT->BRR  = PIN_USB_CONNECT
-	#define PIN_USB_CONNECT_OFF()		PIN_USB_CONNECT_PORT->BSRR = PIN_USB_CONNECT
-
-	/* Control USB connecting via SW	*/
-	__STATIC_INLINE void PORT_USB_CONNECT_SETUP(void)
-	{
-		const GPIO_InitTypeDef usb_disc_init = {
-			PIN_USB_CONNECT,
-			GPIO_Speed_2MHz,
-			GPIO_Mode_Out_OD
-		};
-		RCC->APB2ENR |= PIN_USB_CONNECT_RCC;
-		PIN_USB_CONNECT_OFF();
-		GPIO_INIT(PIN_USB_CONNECT_PORT, usb_disc_init);
-	}
+	#define PIN_USB_CONNECT_RCC		RCC_APB2ENR_IOPAEN
+	#define PIN_USB_CONNECT_PORT    GPIOA
+	#define PIN_USB_CONNECT_PIN		8
+	#define PIN_USB_CONNECT         PIN_MASK(PIN_USB_CONNECT_PIN)
+	#define PIN_USB_MODE			GPIO_Mode_Out_PP
+	#define PIN_USB_CONNECT_ON()	PIN_USB_CONNECT_PORT->BSRR = PIN_USB_CONNECT
+	#define PIN_USB_CONNECT_OFF()	PIN_USB_CONNECT_PORT->BRR  = PIN_USB_CONNECT
 
 #elif defined ( BOARD_V2 )
 
 	#define PIN_USB_CONNECT_RCC		RCC_APB2ENR_IOPAEN
 	#define PIN_USB_CONNECT_PORT    GPIOA
-	#define PIN_USB_CONNECT         GPIO_Pin_8
+	#define PIN_USB_CONNECT_PIN		8
+	#define PIN_USB_CONNECT         PIN_MASK(PIN_USB_CONNECT_PIN)
+	#define PIN_USB_MODE			GPIO_Mode_Out_PP
+	#define PIN_USB_CONNECT_ON()	PIN_USB_CONNECT_PORT->BSRR = PIN_USB_CONNECT
+	#define PIN_USB_CONNECT_OFF()	PIN_USB_CONNECT_PORT->BRR  = PIN_USB_CONNECT
 
-	#define PIN_USB_CONNECT_ON()		PIN_USB_CONNECT_PORT->BSRR = PIN_USB_CONNECT
-	#define PIN_USB_CONNECT_OFF()		PIN_USB_CONNECT_PORT->BRR  = PIN_USB_CONNECT
+#elif defined ( BOARD_STM32RF )
 
-	/* Control USB connecting via SW	*/
-	__STATIC_INLINE void PORT_USB_CONNECT_SETUP(void)
-	{
-		const GPIO_InitTypeDef usb_disc_init = {
-			PIN_USB_CONNECT,
-			GPIO_Speed_2MHz,
-			GPIO_Mode_Out_PP
-			};
-		RCC->APB2ENR |= PIN_USB_CONNECT_RCC;
-		PIN_USB_CONNECT_OFF();
-		GPIO_INIT(PIN_USB_CONNECT_PORT, usb_disc_init);
-	}
+	#define PIN_USB_CONNECT_RCC		RCC_APB2ENR_IOPBEN
+	#define PIN_USB_CONNECT_PORT    GPIOB
+	#define PIN_USB_CONNECT_PIN		5
+	#define PIN_USB_CONNECT         PIN_MASK(PIN_USB_CONNECT_PIN)
+	#define PIN_USB_MODE			GPIO_Mode_Out_PP
+	#define PIN_USB_CONNECT_ON()	PIN_USB_CONNECT_PORT->BSRR = PIN_USB_CONNECT
+	#define PIN_USB_CONNECT_OFF()	PIN_USB_CONNECT_PORT->BRR  = PIN_USB_CONNECT
 
 #endif
+
+#define PIN_SWDIO_TMS			PIN_MASK(PIN_SWDIO_TMS_PIN)
+#define PIN_SWCLK_TCK			PIN_MASK(PIN_SWCLK_TCK_PIN)
+
+//	For fast switch between input and output mode
+//	without GPIO_Init call
+#if (PIN_SWDIO_TMS_PIN >= 8)
+	#define PIN_SWDIO_TMS_OUT_DISABLE()					\
+		do {											\
+			PIN_SWDIO_TMS_PORT->CRH = (PIN_SWDIO_TMS_PORT->CRH & ~PIN_MODE_MASK(PIN_SWDIO_TMS_PIN - 8)) | PIN_MODE(0x8, PIN_SWDIO_TMS_PIN - 8);	\
+			PIN_SWDIO_TMS_PORT->BSRR = PIN_SWDIO_TMS;	\
+		} while (0)
+
+	#define PIN_SWDIO_TMS_OUT_ENABLE()					\
+		do {											\
+			PIN_SWDIO_TMS_PORT->CRH = (PIN_SWDIO_TMS_PORT->CRH & ~PIN_MODE_MASK(PIN_SWDIO_TMS_PIN - 8)) | PIN_MODE(0x3, PIN_SWDIO_TMS_PIN - 8);	\
+			PIN_SWDIO_TMS_PORT->BRR  = PIN_SWDIO_TMS;	\
+		} while (0)
+
+#else
+	#define PIN_SWDIO_TMS_OUT_DISABLE()					\
+		do {											\
+			PIN_SWDIO_TMS_PORT->CRL = (PIN_SWDIO_TMS_PORT->CRL & ~PIN_MODE_MASK(PIN_SWDIO_TMS_PIN)) | PIN_MODE(0x8, PIN_SWDIO_TMS_PIN);	\
+			PIN_SWDIO_TMS_PORT->BSRR = PIN_SWDIO_TMS;	\
+		} while (0)
+
+	#define PIN_SWDIO_TMS_OUT_ENABLE()					\
+		do {											\
+			PIN_SWDIO_TMS_PORT->CRL = (PIN_SWDIO_TMS_PORT->CRL & ~PIN_MODE_MASK(PIN_SWDIO_TMS_PIN)) | PIN_MODE(0x3, PIN_SWDIO_TMS_PIN);	\
+			PIN_SWDIO_TMS_PORT->BRR  = PIN_SWDIO_TMS;	\
+		} while (0)
+
+#endif
+
+void PORT_USB_CONNECT_SETUP(void);
+void LEDS_SETUP (void);
 
 //**************************************************************************************************
 /** 
@@ -316,86 +373,9 @@ of the same I/O port. The following SWDIO I/O Pin functions are provided:
 
 // Configure DAP I/O pins ------------------------------
 
-/** Setup JTAG I/O pins: TCK, TMS, TDI, TDO, nTRST, and nRESET.
-Configures the DAP Hardware I/O pins for JTAG mode:
- - TCK, TMS, TDI, nTRST, nRESET to output mode and set to high level.
- - TDO to input mode.
-*/ 
-__STATIC_INLINE void PORT_JTAG_SETUP(void)
-{
-	const GPIO_InitTypeDef jtag_init_in = {
-		PIN_TDO,
-		(GPIOSpeed_TypeDef)0,
-		GPIO_Mode_IPU
-	};
-	const GPIO_InitTypeDef jtag_init_out = {
-		PIN_SWCLK_TCK | PIN_SWDIO_TMS | PIN_TDI,
-		GPIO_Speed_50MHz,
-		GPIO_Mode_Out_PP
-	};
-	const GPIO_InitTypeDef jtag_init_reset = {
-		PIN_nRESET,
-		GPIO_Speed_50MHz,
-		GPIO_Mode_Out_OD
-	};
-
-	PIN_SWCLK_TCK_PORT->BSRR = PIN_SWCLK_TCK | PIN_SWDIO_TMS | PIN_TDI | PIN_TDO;
-	PIN_nRESET_PORT->BSRR = PIN_nRESET;
-
-	GPIO_INIT(PIN_TDO_PORT,       jtag_init_in);
-	GPIO_INIT(PIN_SWCLK_TCK_PORT, jtag_init_out);
-	GPIO_INIT(PIN_nRESET_PORT,    jtag_init_reset);
-}
-
-/** Setup SWD I/O pins: SWCLK, SWDIO, and nRESET.
-Configures the DAP Hardware I/O pins for Serial Wire Debug (SWD) mode:
- - SWCLK, SWDIO, nRESET to output mode and set to default high level.
- - TDI, TDO, nTRST to HighZ mode (pins are unused in SWD mode).
-*/ 
-__STATIC_INLINE void PORT_SWD_SETUP(void)
-{
-	const GPIO_InitTypeDef swd_init_in = {
-		PIN_TDI | PIN_TDO,
-		(GPIOSpeed_TypeDef)0,
-		GPIO_Mode_IN_FLOATING
-	};
-	const GPIO_InitTypeDef swd_init_out = {
-		PIN_SWCLK_TCK | PIN_SWDIO_TMS,
-		GPIO_Speed_50MHz,
-		GPIO_Mode_Out_PP
-	};
-	const GPIO_InitTypeDef swd_init_reset = {
-		PIN_nRESET,
-		GPIO_Speed_50MHz,
-		GPIO_Mode_Out_OD
-	};
-
-	PIN_SWCLK_TCK_PORT->BSRR = PIN_SWCLK_TCK | PIN_SWDIO_TMS;
-	GPIO_INIT(PIN_TDI_PORT,       swd_init_in);
-	GPIO_INIT(PIN_SWCLK_TCK_PORT, swd_init_out);
-	GPIO_INIT(PIN_nRESET_PORT,    swd_init_reset);
-}
-
-/** Disable JTAG/SWD I/O Pins.
-Disables the DAP Hardware I/O pins which configures:
- - TCK/SWCLK, TMS/SWDIO, TDI, TDO, nTRST, nRESET to High-Z mode.
-*/
-__STATIC_INLINE void PORT_OFF(void)
-{
-	const GPIO_InitTypeDef port_off_all = {
-		(PIN_SWCLK_TCK | PIN_SWDIO_TMS | PIN_TDI | PIN_TDO),
-		(GPIOSpeed_TypeDef)0,
-		GPIO_Mode_IN_FLOATING
-	};
-	const GPIO_InitTypeDef port_off_reset = {
-		(PIN_nRESET),
-		(GPIOSpeed_TypeDef)0,
-		GPIO_Mode_IN_FLOATING
-	};
-
-	GPIO_INIT(PIN_SWCLK_TCK_PORT, port_off_all);
-	GPIO_INIT(PIN_nRESET_PORT,    port_off_reset);
-}
+void PORT_JTAG_SETUP(void);
+void PORT_SWD_SETUP(void);
+void PORT_OFF(void);
 
 /** Setup of the Debug Unit I/O pins and LEDs (called when Debug Unit is initialized).
 This function performs the initialization of the CMSIS-DAP Hardware I/O Pins and the 
@@ -405,14 +385,7 @@ Status LEDs. In detail the operation of Hardware I/O and LED pins are enabled an
  - for nTRST, nRESET a weak pull-up (if available) is enabled.
  - LED output pins are enabled and LEDs are turned off.
 */
-__STATIC_INLINE void DAP_SETUP(void)
-{
-	/* Configure: SWCLK/TCK, SWDIO/TMS, SWDIO_OE, TDI as outputs (high level)	*/
-	/*            TDO as input													*/
-	/*            nRESET set to high (open-drain)								*/
-	/*            nRESET_OE as output (low level)								*/
-	PORT_OFF();
-}
+#define DAP_SETUP()	PORT_OFF()
 
 // SWCLK/TCK I/O pin -------------------------------------
 
@@ -421,15 +394,13 @@ __STATIC_INLINE void DAP_SETUP(void)
 */
 __STATIC_INLINE uint32_t PIN_SWCLK_TCK_IN(void)
 {
-	if (PIN_SWCLK_TCK_PORT->ODR & PIN_SWCLK_TCK)
-		return 1;
-	return 0;
+	return (PIN_SWCLK_TCK_PORT->ODR & PIN_SWCLK_TCK) ? 1 : 0;
 }
 
 /** SWCLK/TCK I/O pin: Set Output to High.
 Set the SWCLK/TCK DAP hardware I/O pin to high level.
 */
-static __forceinline void     PIN_SWCLK_TCK_SET(void)
+__STATIC_INLINE void PIN_SWCLK_TCK_SET(void)
 {
 	PIN_SWCLK_TCK_PORT->BSRR = PIN_SWCLK_TCK;
 }
@@ -450,9 +421,7 @@ __STATIC_INLINE void PIN_SWCLK_TCK_CLR (void)
 */
 __STATIC_INLINE uint32_t PIN_SWDIO_TMS_IN(void)
 {
-	if (PIN_SWDIO_TMS_PORT->IDR & PIN_SWDIO_TMS)
-		return 1;
-	return 0;
+	return (PIN_SWDIO_TMS_PORT->IDR & PIN_SWDIO_TMS) ? 1 : 0;
 }
 
 /** SWDIO/TMS I/O pin: Set Output to High.
@@ -512,15 +481,13 @@ __STATIC_INLINE void PIN_SWDIO_OUT_DISABLE(void)
 
 
 // TDI Pin I/O ---------------------------------------------
-
+#if ( DAP_JTAG != 0 )
 /** TDI I/O pin: Get Input.
 \return Current status of the TDI DAP hardware I/O pin.
 */
 __STATIC_INLINE uint32_t PIN_TDI_IN(void)
 {
-	if (PIN_TDI_PORT->ODR & PIN_TDI)
-		return 1;
-	return 0;
+	return (PIN_TDI_PORT->ODR & PIN_TDI) ? 1 : 0;
 }
 
 /** TDI I/O pin: Set Output.
@@ -542,11 +509,9 @@ __STATIC_INLINE void PIN_TDI_OUT(uint32_t bit)
 */
 __STATIC_INLINE uint32_t PIN_TDO_IN(void)
 {
-	if (PIN_TDO_PORT->IDR & PIN_TDO)
-		return 1;
-	return 0;
+	return (PIN_TDO_PORT->IDR & PIN_TDO) ? 1 : 0;
 }
-
+#endif
 
 // nTRST Pin I/O -------------------------------------------
 
@@ -575,7 +540,7 @@ __STATIC_INLINE void PIN_nTRST_OUT(uint32_t bit)
 */
 __STATIC_INLINE uint32_t PIN_nRESET_IN(void)
 {
-	if (PIN_nRESET_PORT->ODR & PIN_nRESET)
+	if (PIN_nRESET_PORT->IDR & PIN_nRESET)
 		return 1;
 	return 0;
 }
@@ -588,13 +553,16 @@ __STATIC_INLINE uint32_t PIN_nRESET_IN(void)
 __STATIC_INLINE void PIN_nRESET_OUT(uint32_t bit)
 {
   	if (bit & 1)
-		PIN_nRESET_PORT->BRR  = PIN_nRESET;
-	else
+	{
 		PIN_nRESET_PORT->BSRR = PIN_nRESET;
+	}
+	else
+	{
+		PIN_nRESET_PORT->BRR = PIN_nRESET;
+	}
 }
 
 ///@}
-
 
 //**************************************************************************************************
 /** 

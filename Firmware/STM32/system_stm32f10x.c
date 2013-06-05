@@ -955,46 +955,39 @@ static void SetSysClockTo56(void)
   */
 static void SetSysClockTo72(void)
 {
-	__IO uint32_t StartUpCounter = 0, HSEStatus = 0;
+	__IO uint32_t StartUpCounter = 0;
 
-	/* SYSCLK, HCLK, PCLK2 and PCLK1 configuration ---------------------------*/    
-	/* Enable HSE */    
-	RCC->CR |= ((uint32_t)RCC_CR_HSEON);
+	// SYSCLK, HCLK, PCLK2 and PCLK1 configuration
+	// Enable HSE
+	RCC->CR |= RCC_CR_HSEON;
 
-	/* Wait till HSE is ready and if Time out is reached exit */
-	do
-	{
-		HSEStatus = RCC->CR & RCC_CR_HSERDY;
-		StartUpCounter++;  
-	} while((HSEStatus == 0) && (StartUpCounter != HSE_STARTUP_TIMEOUT));
+	// Wait till HSE is ready and if Time out is reached exit
+	while (((RCC->CR & RCC_CR_HSERDY) == RESET) && (StartUpCounter != HSE_STARTUP_TIMEOUT))
+	{ }
 
-	if ((RCC->CR & RCC_CR_HSERDY) != RESET)
-	{
-		HSEStatus = (uint32_t)0x01;
+	if ((RCC->CR & RCC_CR_HSERDY) == RESET)
+	{	// HSE not start, disable it
+		RCC->CR &= ~RCC_CR_HSEON;
+		StartUpCounter = 1;
 	}
 	else
-	{
-		HSEStatus = (uint32_t)0x00;
-	}
+		StartUpCounter = 0;
 
-	if (HSEStatus == (uint32_t)0x01)
-	{
-		/* Enable Prefetch Buffer */
-		FLASH->ACR |= FLASH_ACR_PRFTBE;
+	/* Enable Prefetch Buffer */
+	FLASH->ACR |= FLASH_ACR_PRFTBE;
 
-		/* Flash 2 wait state */
-		FLASH->ACR &= (uint32_t)((uint32_t)~FLASH_ACR_LATENCY);
-		FLASH->ACR |= (uint32_t)FLASH_ACR_LATENCY_2;    
+	/* Flash 2 wait state */
+	FLASH->ACR &= ~((uint32_t)FLASH_ACR_LATENCY);
+	FLASH->ACR |=  (uint32_t)FLASH_ACR_LATENCY_2;    
 
+	/* HCLK = SYSCLK */
+	RCC->CFGR |= RCC_CFGR_HPRE_DIV1;
 
-		/* HCLK = SYSCLK */
-		RCC->CFGR |= (uint32_t)RCC_CFGR_HPRE_DIV1;
+	/* PCLK2 = HCLK */
+	RCC->CFGR |= RCC_CFGR_PPRE2_DIV1;
 
-		/* PCLK2 = HCLK */
-		RCC->CFGR |= (uint32_t)RCC_CFGR_PPRE2_DIV1;
-
-		/* PCLK1 = HCLK */
-		RCC->CFGR |= (uint32_t)RCC_CFGR_PPRE1_DIV2;
+	/* PCLK1 = HCLK */
+	RCC->CFGR |= RCC_CFGR_PPRE1_DIV2;
 
 	#ifdef STM32F10X_CL
 		/* Configure PLLs ------------------------------------------------------*/
@@ -1014,34 +1007,34 @@ static void SetSysClockTo72(void)
 
 		/* PLL configuration: PLLCLK = PREDIV1 * 9 = 72 MHz */ 
 		RCC->CFGR &= (uint32_t)~(RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLSRC | RCC_CFGR_PLLMULL);
-		RCC->CFGR |= (uint32_t)(RCC_CFGR_PLLXTPRE_PREDIV1 | RCC_CFGR_PLLSRC_PREDIV1 | 
-		RCC_CFGR_PLLMULL9); 
+		RCC->CFGR |= (uint32_t)(RCC_CFGR_PLLXTPRE_PREDIV1 | RCC_CFGR_PLLSRC_PREDIV1 | RCC_CFGR_PLLMULL9);
 	#else    
 		/*  PLL configuration: PLLCLK = HSE * 9 = 72 MHz */
-		RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLMULL));
-		RCC->CFGR |= (uint32_t)(RCC_CFGR_PLLSRC_HSE | RCC_CFGR_PLLMULL9);
+		RCC->CFGR &= ~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLMULL);
+		if (StartUpCounter)
+		{
+			RCC->CFGR |= (RCC_CFGR_PLLMULL12 | RCC_CFGR_USBPRE);
+		}
+		else
+		{
+			RCC->CFGR |= (RCC_CFGR_PLLSRC_HSE | RCC_CFGR_PLLMULL9);
+		}
 	#endif /* STM32F10X_CL */
 
-		/* Enable PLL */
-		RCC->CR |= RCC_CR_PLLON;
+	/* Enable PLL */
+	RCC->CR |= RCC_CR_PLLON;
 
-		/* Wait till PLL is ready */
-		while((RCC->CR & RCC_CR_PLLRDY) == 0)
-		{ }
+	/* Wait till PLL is ready */
+	while((RCC->CR & RCC_CR_PLLRDY) == 0)
+	{ }
 
-		/* Select PLL as system clock source */
-		RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_SW));
-		RCC->CFGR |= (uint32_t)RCC_CFGR_SW_PLL;
+	/* Select PLL as system clock source */
+	RCC->CFGR &= ~RCC_CFGR_SW;
+	RCC->CFGR |=  RCC_CFGR_SW_PLL;
 
-		/* Wait till PLL is used as system clock source */
-		while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS) != (uint32_t)0x08)
-		{ }
-	}
-	else
-	{	/*	If HSE fails to start-up, the application will have wrong clock 
-			configuration. User can add here some code to deal with this error
-		*/
-	}
+	/* Wait till PLL is used as system clock source */
+	while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS) != (uint32_t)0x08)
+	{ }
 }
 #endif
 
