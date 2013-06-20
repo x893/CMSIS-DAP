@@ -392,7 +392,7 @@ void NotifyOnStatusChange (void)
 
 const GPIO_InitTypeDef INIT_PINS_A = {
 	// SWDIO, SWDCLK, USB_DP, USB_DM
-	(uint16_t)~(GPIO_Pin_15 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_12 | GPIO_Pin_11),
+	(uint16_t)~(GPIO_Pin_14 | GPIO_Pin_13 | GPIO_Pin_12 | GPIO_Pin_11),
 	GPIO_Speed_2MHz,
 	GPIO_Mode_AIN
 };
@@ -401,13 +401,13 @@ const GPIO_InitTypeDef INIT_PINS_BC = {
 	GPIO_Speed_2MHz,
 	GPIO_Mode_AIN
 };
-
+/*
 const GPIO_InitTypeDef INIT_PINS_B3_B4 = {
 	GPIO_Pin_3 | GPIO_Pin_4,
 	GPIO_Speed_2MHz,
 	GPIO_Mode_IPD
 };
-	
+*/
 
 void BoardInit(void)
 {
@@ -419,7 +419,9 @@ void BoardInit(void)
 	GPIO_INIT(GPIOA, INIT_PINS_A);
 	GPIO_INIT(GPIOB, INIT_PINS_BC);
 	GPIO_INIT(GPIOC, INIT_PINS_BC);
-	GPIO_INIT(GPIOB, INIT_PINS_B3_B4);
+//	GPIO_INIT(GPIOB, INIT_PINS_B3_B4);
+	GPIOA->ODR &= ~GPIO_Pin_15;
+	GPIOB->ODR &= ~GPIO_Pin_4;
 
 	LEDS_SETUP();
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="6.1">
+<eagle version="6.4">
 <drawing>
 <settings>
 <setting alwaysvectorfont="yes"/>
@@ -543,7 +543,7 @@ Source: http://www.osram.convergy.de/ ... LG_LY Q971.pdf</description>
 <class number="0" name="default" width="0" drill="0">
 </class>
 </classes>
-<designrules>
+<designrules name="default">
 <description language="de">&lt;b&gt;EAGLE Design Rules&lt;/b&gt;
 &lt;p&gt;
 Die Standard-Design-Rules sind so gewählt, dass sie für 
@@ -763,9 +763,8 @@ design rules under a new name.</description>
 <wire x1="13.55" y1="1.65" x2="13.6" y2="1.6" width="0.5" layer="16"/>
 <wire x1="13.6" y1="1.65" x2="13.6" y2="1.6" width="0.5" layer="16"/>
 <wire x1="13.6" y1="1.6" x2="16.4" y2="1.6" width="0.5" layer="16"/>
-<wire x1="16.4" y1="1.6" x2="18.6" y2="1.6" width="0.5" layer="16"/>
-<wire x1="18.6" y1="1.6" x2="18.8" y2="1.8" width="0.5" layer="16"/>
-<wire x1="18.8" y1="1.8" x2="18.8" y2="2.6" width="0.5" layer="16"/>
+<wire x1="16.4" y1="1.6" x2="18.8" y2="1.6" width="0.5" layer="16"/>
+<wire x1="18.8" y1="1.6" x2="18.8" y2="2.6" width="0.5" layer="16"/>
 <wire x1="16.4" y1="1.75" x2="16.4" y2="1.6" width="0.5" layer="16"/>
 <wire x1="12.1" y1="1.65" x2="11.75" y2="1.65" width="0.25" layer="16"/>
 <wire x1="11.75" y1="1.65" x2="11.4" y2="2" width="0.25" layer="16"/>
@@ -789,8 +788,8 @@ design rules under a new name.</description>
 <via x="12.45" y="9.35" extent="1-16" drill="0.4"/>
 <wire x1="12.4" y1="10.65" x2="12.4" y2="9.6" width="0.25" layer="16"/>
 <wire x1="12.4" y1="9.6" x2="12.45" y2="9.35" width="0.25" layer="16"/>
-<wire x1="18.8" y1="1.8" x2="24.98" y2="1.8" width="0.5" layer="16"/>
-<wire x1="24.98" y1="1.8" x2="25" y2="1.58" width="0.5" layer="16"/>
+<wire x1="18.8" y1="1.6" x2="24.98" y2="1.6" width="0.5" layer="16"/>
+<wire x1="24.98" y1="1.6" x2="25" y2="1.58" width="0.5" layer="16"/>
 </signal>
 <signal name="GND">
 <contactref element="C13" pad="1"/>
