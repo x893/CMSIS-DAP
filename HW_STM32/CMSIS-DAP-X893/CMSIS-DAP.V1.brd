@@ -169,6 +169,7 @@
 <text x="7.6" y="15.9" size="1.27" layer="51" ratio="15">LED</text>
 <text x="-2.9" y="3.6" size="1.27" layer="51" ratio="15" rot="R90">MiniUSB</text>
 <text x="-4.9" y="2.6" size="1.27" layer="51" ratio="15" rot="R90">USB-A or</text>
+<text x="0.2" y="22.2" size="2" layer="49" ratio="15">Version 1</text>
 </plain>
 <libraries>
 <library name="stm32">

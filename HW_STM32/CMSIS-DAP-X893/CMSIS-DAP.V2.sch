@@ -4085,8 +4085,8 @@ Source: www.kingbright.com</description>
 <part name="C4" library="X893" deviceset="CAP" device="-0603" value="0.1u"/>
 <part name="C6" library="X893" deviceset="CAP" device="-0603" value="0.1u"/>
 <part name="Q1" library="X893" deviceset="CRYSTAL" device="-KX-9A" value="8M"/>
-<part name="C13" library="X893" deviceset="CAP" device="-0603" value="20p"/>
-<part name="C14" library="X893" deviceset="CAP" device="-0603" value="20p"/>
+<part name="C13" library="X893" deviceset="CAP" device="-0603" value="15p"/>
+<part name="C14" library="X893" deviceset="CAP" device="-0603" value="15p"/>
 <part name="SUPPLY9" library="supply2" deviceset="GND" device=""/>
 <part name="R4" library="X893" deviceset="RESISTOR" device="-0603" value="100K"/>
 <part name="R5" library="X893" deviceset="RESISTOR" device="-0603" value="100K"/>
@@ -4114,7 +4114,7 @@ Source: www.kingbright.com</description>
 <part name="SUPPLY45" library="supply2" deviceset="GND" device=""/>
 <part name="C29" library="X893" deviceset="CAP" device="-0603" value="4.7u"/>
 <part name="SUPPLY1" library="supply2" deviceset="VEE" device=""/>
-<part name="IC1" library="stm32" deviceset="STM32F10XCXT6" device="" value="STM32F103CBT6"/>
+<part name="IC1" library="stm32" deviceset="STM32F10XCXT6" device="" value="STM32F102C8-B/STM32F103C8-B"/>
 <part name="SUPPLY3" library="supply2" deviceset="GND" device=""/>
 <part name="SUPPLY4" library="supply2" deviceset="GND" device=""/>
 <part name="J3" library="X893" deviceset="USB-4" device="-A-SMD"/>

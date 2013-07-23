@@ -1,21 +1,10 @@
-/*------------------------------------------------------------------------------
- *      RL-ARM - USB
- *------------------------------------------------------------------------------
- *      Name:    USBD_Demo.c
- *      Purpose: USB Device Demonstration
- *      Rev.:    V4.70
- *------------------------------------------------------------------------------
- *      This code is part of the RealView Run-Time Library.
- *      Copyright (c) 2004-2013 KEIL - An ARM Company. All rights reserved.
- *----------------------------------------------------------------------------*/
-
 #define TIMEOUT_DELAY	200000
 
 #include <stdio.h>
 
 #include <RTL.h>
 #include <rl_usb.h>
-#include <stm32f10x.h>                         /* STM32F10x Definitions      */
+#include <stm32f10x.h>
 
 #define  __NO_USB_LIB_C
 #include "usb_config.c"
@@ -259,89 +248,81 @@ PUTCHAR_PROTOTYPE
 
 #if ( DAP_SWD != 0 )
 
-	#if ( DAP_JTAG != 0 )
-	const GPIO_InitTypeDef INIT_SWD_TDx = {
-		PIN_TDI | PIN_TDO,
-		(GPIOSpeed_TypeDef)0,
-		GPIO_Mode_IN_FLOATING
-	};
-	#endif
+#if ( DAP_JTAG != 0 )
+const GPIO_InitTypeDef INIT_SWD_TDx = {
+	PIN_TDI | PIN_TDO,
+	(GPIOSpeed_TypeDef)0,
+	GPIO_Mode_IN_FLOATING
+};
+#endif
 
-	const GPIO_InitTypeDef INIT_SWD_PINS = {
-		PIN_SWCLK_TCK | PIN_SWDIO_TMS,
-		GPIO_Speed_50MHz,
-		GPIO_Mode_Out_PP
-	};
-	const GPIO_InitTypeDef INIT_SWD_RESET = {
-		PIN_nRESET,
-		GPIO_Speed_50MHz,
-		GPIO_Mode_Out_OD
-	};
+const GPIO_InitTypeDef INIT_SWD_PINS = {
+	PIN_SWCLK_TCK | PIN_SWDIO_TMS,
+	GPIO_Speed_50MHz,
+	GPIO_Mode_Out_PP
+};
 
-	/** Setup SWD I/O pins: SWCLK, SWDIO, and nRESET.
+/** Setup SWD I/O pins: SWCLK, SWDIO, and nRESET.
 	Configures the DAP Hardware I/O pins for Serial Wire Debug (SWD) mode:
 	 - SWCLK, SWDIO, nRESET to output mode and set to default high level.
 	 - TDI, TDO, nTRST to HighZ mode (pins are unused in SWD mode).
-	*/ 
-	void PORT_SWD_SETUP()
-	{
-		PIN_SWCLK_TCK_PORT->BSRR = (PIN_SWCLK_TCK | PIN_SWDIO_TMS);
-		PIN_nRESET_OUT(0);
-
-	#if ( DAP_JTAG != 0 )
-		GPIO_INIT(PIN_TDI_PORT,       INIT_SWD_TDx);
-	#endif
-		GPIO_INIT(PIN_SWCLK_TCK_PORT, INIT_SWD_PINS);
-		GPIO_INIT(PIN_nRESET_PORT,    INIT_SWD_RESET);
-	}
-#endif
+*/ 
+void PORT_SWD_SETUP()
+{
+	PIN_SWCLK_TCK_PORT->BSRR = (PIN_SWCLK_TCK | PIN_SWDIO_TMS);
+	PIN_nRESET_PORT->BRR = PIN_nRESET;
 
 #if ( DAP_JTAG != 0 )
-	const GPIO_InitTypeDef jtag_init_in = {
-		PIN_TDO,
-		(GPIOSpeed_TypeDef)0,
-		GPIO_Mode_IPU
-	};
-	const GPIO_InitTypeDef jtag_init_out = {
-		PIN_SWCLK_TCK | PIN_SWDIO_TMS | PIN_TDI,
-		GPIO_Speed_50MHz,
-		GPIO_Mode_Out_PP
-	};
-	const GPIO_InitTypeDef jtag_init_reset = {
-		PIN_nRESET,
-		GPIO_Speed_50MHz,
-		GPIO_Mode_Out_OD
-	};
+	GPIO_INIT(PIN_TDI_PORT,       INIT_SWD_TDx);
+#endif
+	GPIO_INIT(PIN_SWCLK_TCK_PORT, INIT_SWD_PINS);
+	PIN_nRESET_HIGH();
+}
+#endif
 
-	/** Setup JTAG I/O pins: TCK, TMS, TDI, TDO, nTRST, and nRESET.
+
+#if ( DAP_JTAG != 0 )
+
+const GPIO_InitTypeDef INIT_JTAG_IN = {
+	PIN_TDO,
+	(GPIOSpeed_TypeDef)0,
+	GPIO_Mode_IPU
+};
+const GPIO_InitTypeDef INIT_JTAG_OUT = {
+	PIN_SWCLK_TCK | PIN_SWDIO_TMS | PIN_TDI,
+	GPIO_Speed_50MHz,
+	GPIO_Mode_Out_PP
+};
+
+/** Setup JTAG I/O pins: TCK, TMS, TDI, TDO, nTRST, and nRESET.
 	Configures the DAP Hardware I/O pins for JTAG mode:
-	 - TCK, TMS, TDI, nTRST, nRESET to output mode and set to high level.
-	 - TDO to input mode.
-	*/ 
-	void PORT_JTAG_SETUP()
-	{
-		PIN_SWCLK_TCK_PORT->BSRR = PIN_SWCLK_TCK | PIN_SWDIO_TMS | PIN_TDI | PIN_TDO;
-		PIN_nRESET_PORT->BSRR = PIN_nRESET;
+	- TCK, TMS, TDI, nTRST, nRESET to output mode and set to high level.
+	- TDO to input mode.
+*/ 
+void PORT_JTAG_SETUP()
+{
+	PIN_SWCLK_TCK_PORT->BSRR = PIN_SWCLK_TCK | PIN_SWDIO_TMS | PIN_TDI | PIN_TDO;
+	PIN_nRESET_PORT->BRR = PIN_nRESET;
+	PIN_nRESET_HIGH();
 
-		GPIO_INIT(PIN_TDO_PORT,       jtag_init_in);
-		GPIO_INIT(PIN_SWCLK_TCK_PORT, jtag_init_out);
-		GPIO_INIT(PIN_nRESET_PORT,    jtag_init_reset);
-	}
+	GPIO_INIT(PIN_TDO_PORT,       INIT_JTAG_IN);
+	GPIO_INIT(PIN_SWCLK_TCK_PORT, INIT_JTAG_OUT);
+}
 #endif
 
 const GPIO_InitTypeDef port_off_all = {
-	(PIN_SWCLK_TCK | PIN_SWDIO_TMS
 #if ( DAP_JTAG != 0 )
-	| PIN_TDI | PIN_TDO
+	(PIN_SWCLK_TCK | PIN_SWDIO_TMS | PIN_TDI | PIN_TDO),
+#else
+	(PIN_SWCLK_TCK | PIN_SWDIO_TMS),
 #endif
-	),
 	(GPIOSpeed_TypeDef)0,
-	GPIO_Mode_IN_FLOATING
+	GPIO_Mode_AIN
 };
 const GPIO_InitTypeDef port_off_reset = {
 	(PIN_nRESET),
 	(GPIOSpeed_TypeDef)0,
-	GPIO_Mode_IN_FLOATING
+	GPIO_Mode_AIN
 };
 
 /** Disable JTAG/SWD I/O Pins.
@@ -364,28 +345,30 @@ void NotifyOnStatusChange (void)
 
 	status = UART_GetCommunicationErrorStatus();
 
-	if ((status & UART_OVERRUN_ERROR_Msk) == UART_OVERRUN_ERROR_Msk)
+	if (status & UART_OVERRUN_ERROR_Msk)
 		notify |= CDC_SERIAL_STATE_OVERRUN;
-	if ((status & UART_PARITY_ERROR_Msk ) == UART_PARITY_ERROR_Msk )
+	if (status & UART_PARITY_ERROR_Msk )
 		notify |= CDC_SERIAL_STATE_OVERRUN;
-	if ((status & UART_FRAMING_ERROR_Msk) == UART_FRAMING_ERROR_Msk)
+	if (status & UART_FRAMING_ERROR_Msk)
 		notify |= CDC_SERIAL_STATE_FRAMING;
 	
 	status	= UART_GetStatusLineState();	
 	
-	if ((status & UART_STATUS_LINE_RI_Msk )  == UART_STATUS_LINE_RI_Msk)
+	if (status & UART_STATUS_LINE_RI_Msk )
 		notify |= CDC_SERIAL_STATE_RING;
-	if ((status & UART_STATUS_LINE_DSR_Msk)  == UART_STATUS_LINE_DSR_Msk)
+	if (status & UART_STATUS_LINE_DSR_Msk)
 		notify |= CDC_SERIAL_STATE_TX_CARRIER;
-	if ((status & UART_STATUS_LINE_DCD_Msk)  == UART_STATUS_LINE_DCD_Msk)
+	if (status & UART_STATUS_LINE_DCD_Msk)
 		notify |= CDC_SERIAL_STATE_RX_CARRIER;
 	
 	if (UART_GetBreak())
 		notify |= CDC_SERIAL_STATE_BREAK;
 	
 	if (notify ^ old_notify)				// If notify changed
+	{
 		if (USBD_CDC_ACM_Notify (notify))   // Send new notification
 			old_notify = notify;
+	}
 }
 
 #endif
@@ -401,13 +384,6 @@ const GPIO_InitTypeDef INIT_PINS_BC = {
 	GPIO_Speed_2MHz,
 	GPIO_Mode_AIN
 };
-/*
-const GPIO_InitTypeDef INIT_PINS_B3_B4 = {
-	GPIO_Pin_3 | GPIO_Pin_4,
-	GPIO_Speed_2MHz,
-	GPIO_Mode_IPD
-};
-*/
 
 void BoardInit(void)
 {
@@ -419,9 +395,6 @@ void BoardInit(void)
 	GPIO_INIT(GPIOA, INIT_PINS_A);
 	GPIO_INIT(GPIOB, INIT_PINS_BC);
 	GPIO_INIT(GPIOC, INIT_PINS_BC);
-//	GPIO_INIT(GPIOB, INIT_PINS_B3_B4);
-	GPIOA->ODR &= ~GPIO_Pin_15;
-	GPIOB->ODR &= ~GPIO_Pin_4;
 
 	LEDS_SETUP();
 }
@@ -435,4 +408,22 @@ void USBD_Error_Event(void)
 	usbd_reset_core();
 
 	while(1);
+}
+
+
+/** nRESET I/O pin: Set Output.
+\param bit target device hardware reset pin status:
+           - 0: issue a device hardware reset.
+           - 1: release device hardware reset.
+*/
+void PIN_nRESET_OUT(uint8_t bit)
+{
+  	if (bit & 1)
+	{
+		PIN_nRESET_HIGH();
+	}
+	else
+	{
+		PIN_nRESET_LOW();
+	}
 }

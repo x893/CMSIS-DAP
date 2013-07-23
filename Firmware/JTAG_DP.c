@@ -346,12 +346,14 @@ void JTAG_IR (uint32_t ir) {
 //   request: A[3:2] RnW APnDP
 //   data:    DATA[31:0]
 //   return:  ACK[2:0]
-uint8_t  JTAG_Transfer(uint32_t request, uint32_t *data) {
-  if (DAP_Data.fast_clock) {
-    return JTAG_TransferFast(request, data);
-  } else {
-    return JTAG_TransferSlow(request, data);
-  }
+uint8_t  JTAG_Transfer(uint8_t request, uint32_t *data)
+{
+	if (DAP_Data.fast_clock)
+	{
+		return JTAG_TransferFast(request, data);
+	} else {
+		return JTAG_TransferSlow(request, data);
+	}
 }
 
 

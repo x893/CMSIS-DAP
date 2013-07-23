@@ -40,7 +40,8 @@ int32_t UART_Reset (void)
 	line_coding_current.bCharFormat = UART_STOP_BITS_1;
 	line_coding_current.bDataBits = UART_DATA_BITS_8;
 	line_coding_current.bParityType = UART_PARITY_NONE;
-	line_coding_current.dwDTERate = 9600;
+	line_coding_current.dwDTERate = 115200;
+
 	USBD_CDC_ACM_PortSetLineCoding(&line_coding_current);
 
 	ptr = (uint8_t *)&WrBuffer;
@@ -61,11 +62,11 @@ int32_t UART_Reset (void)
     \return             1        Function succeeded.
  */
 
+const GPIO_InitTypeDef rx_init = {	USART_RX_PIN,	GPIO_Speed_50MHz,	GPIO_Mode_IPU	};
+const GPIO_InitTypeDef tx_init = {	USART_TX_PIN,	GPIO_Speed_50MHz,	GPIO_Mode_AF_PP	};
+
 int32_t USBD_CDC_ACM_PortInitialize (void)
 {
-	const GPIO_InitTypeDef rx_init = {	USART_RX_PIN,	GPIO_Speed_50MHz,	GPIO_Mode_IPU	};
-	const GPIO_InitTypeDef tx_init = {	USART_TX_PIN,	GPIO_Speed_50MHz,	GPIO_Mode_AF_PP	};
-
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 
 #if   defined ( USART_GPIO_CLK2 )
@@ -158,18 +159,18 @@ int32_t USBD_CDC_ACM_PortSetLineCoding (CDC_LINE_CODING *line_coding)
 	/* Parity */
 	switch (line_coding->bParityType)
 	{
-		case UART_PARITY_NONE:		config->USART_Parity = USART_Parity_No;		break;
-		case UART_PARITY_EVEN:		config->USART_Parity = USART_Parity_Even;	break;
-		case UART_PARITY_ODD:		config->USART_Parity = USART_Parity_Odd;	break;
+		case UART_PARITY_NONE:	config->USART_Parity = USART_Parity_No;		break;
+		case UART_PARITY_EVEN:	config->USART_Parity = USART_Parity_Even;	break;
+		case UART_PARITY_ODD:	config->USART_Parity = USART_Parity_Odd;	break;
 		default: return (0);
 	}
 
 	/* Stop bits */
 	switch (line_coding->bCharFormat)
 	{
-		case UART_STOP_BITS_1:		config->USART_StopBits = USART_StopBits_1;		break;
-		case UART_STOP_BITS_2:		config->USART_StopBits = USART_StopBits_2;		break;
-		case UART_STOP_BITS_1_5:	config->USART_StopBits = USART_StopBits_1_5;	break;
+		case UART_STOP_BITS_1:	config->USART_StopBits = USART_StopBits_1;		break;
+		case UART_STOP_BITS_2:	config->USART_StopBits = USART_StopBits_2;		break;
+		case UART_STOP_BITS_1_5:config->USART_StopBits = USART_StopBits_1_5;	break;
 		default: return (0);
 	}
 
@@ -201,9 +202,9 @@ int32_t USBD_CDC_ACM_PortSetLineCoding (CDC_LINE_CODING *line_coding)
 int32_t USBD_CDC_ACM_PortGetLineCoding (CDC_LINE_CODING *line_coding)
 {
 	line_coding->bCharFormat = line_coding_current.bCharFormat;
-	line_coding->bDataBits = line_coding_current.bDataBits;
+	line_coding->bDataBits   = line_coding_current.bDataBits;
 	line_coding->bParityType = line_coding_current.bParityType;
-	line_coding->dwDTERate = line_coding_current.dwDTERate;
+	line_coding->dwDTERate   = line_coding_current.dwDTERate;
 	return (1);
 }
 
@@ -229,10 +230,11 @@ int32_t USBD_CDC_ACM_PortSetControlLineState (uint16_t ctrl_bmp)
  *----------------------------------------------------------------------------*/
 int32_t UART_WriteData (uint8_t *data, uint16_t size)
 {
-	uint32_t cnt = 0;
+	int32_t cnt = 0;
 	int16_t  len_in_buf;
 
-	if (size == 0) return (0);
+	if (size == 0)
+		return (0);
 
 	while (size--)
 	{
@@ -278,8 +280,10 @@ int32_t UART_ReadData (uint8_t *data, uint16_t size)
 int32_t UART_GetChar (void)
 {
 	uint8_t ch;
-	if ((UART_ReadData (&ch, 1)) == 1) return ((int32_t)ch);
-	else return (-1);
+	if ((UART_ReadData(&ch, 1)) == 1)
+		return ((int32_t)ch);
+	else
+		return (-1);
 }
 
 /*------------------------------------------------------------------------------
@@ -287,8 +291,10 @@ int32_t UART_GetChar (void)
  *----------------------------------------------------------------------------*/
 int32_t UART_PutChar (uint8_t ch)
 {
-	if ((UART_WriteData (&ch, 1)) == 1) return ((uint32_t) ch);
-	else return (-1);
+	if ((UART_WriteData (&ch, 1)) == 1)
+		return ((uint32_t) ch);
+	else
+		return (-1);
 }
 
 /*------------------------------------------------------------------------------

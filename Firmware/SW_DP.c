@@ -57,26 +57,35 @@
 //   data:   pointer to sequence bit data
 //   return: none
 #if ((DAP_SWD != 0) || (DAP_JTAG != 0))
-void SWJ_Sequence (uint32_t count, uint8_t *data) {
-  uint32_t val;
-  uint32_t n;
+void SWJ_Sequence (uint32_t count, uint8_t *data)
+{
+	uint8_t val;
+	uint8_t n;
 
-  val = 0;
-  n = 0;
-  while (count--) {
-    if (n == 0) {
-      val = *data++;
-      n = 8;
-    }
-    if (val & 1) {
-      PIN_SWDIO_TMS_SET();
-    } else {
-      PIN_SWDIO_TMS_CLR();
-    }
-    SW_CLOCK_CYCLE();
-    val >>= 1;
-    n--;
-  }
+	val = 0;
+	n = 0;
+	DEBUG("DATA:");
+	while (count--)
+	{
+		if (n == 0)
+		{
+			val = *data++;
+			DEBUG(" %02X", val);
+			n = 8;
+		}
+		if (val & 1)
+		{
+			PIN_SWDIO_TMS_SET();
+		}
+		else
+		{
+			PIN_SWDIO_TMS_CLR();
+		}
+		SW_CLOCK_CYCLE();
+		val >>= 1;
+		n--;
+	}
+	DEBUG("\n");
 }
 #endif
 
@@ -89,7 +98,7 @@ void SWJ_Sequence (uint32_t count, uint8_t *data) {
 //   data:    DATA[31:0]
 //   return:  ACK[2:0]
 #define SWD_TransferFunction(speed)     /**/                                    \
-uint8_t SWD_Transfer##speed (uint32_t request, uint32_t *data) {                \
+uint8_t SWD_Transfer##speed (uint8_t request, uint32_t *data) {                \
   uint32_t ack;                                                                 \
   uint32_t bit;                                                                 \
   uint32_t val;                                                                 \
@@ -224,12 +233,16 @@ SWD_TransferFunction(Slow);
 //   request: A[3:2] RnW APnDP
 //   data:    DATA[31:0]
 //   return:  ACK[2:0]
-uint8_t  SWD_Transfer(uint32_t request, uint32_t *data) {
-  if (DAP_Data.fast_clock) {
-    return SWD_TransferFast(request, data);
-  } else {
-    return SWD_TransferSlow(request, data);
-  }
+uint8_t  SWD_Transfer(uint8_t request, uint32_t *data)
+{
+	if (DAP_Data.fast_clock)
+	{
+		return SWD_TransferFast(request, data);
+	}
+	else
+	{
+		return SWD_TransferSlow(request, data);
+	}
 }
 
 

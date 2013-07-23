@@ -156,85 +156,95 @@ Provides definitions about:
 ///@}
 
 #define GPIO_INIT(port, data)	GPIO_Init(port, (GPIO_InitTypeDef *)&data)
-#define PIN_MODE_MASK(pin)		(((uint32_t)0x0F) << (pin * 4))
-#define PIN_MODE(mode,pin)		(((uint32_t)mode) << (pin * 4))
-#define PIN_MASK(pin)			(((uint16_t)1) << pin)
+#define PIN_MODE_MASK(pin)		(((uint32_t)0x0F) << ((pin) * 4))
+#define PIN_MODE(mode,pin)		(((uint32_t)mode) << ((pin) * 4))
+#define PIN_MASK(pin)			(((uint16_t)1) << (pin))
 
 // Debug Port I/O Pins
 
 #if defined ( BOARD_V1 ) || defined ( BOARD_V2 ) || defined ( BOARD_STM32RF )
+
 	#define USART_GPIO_CLK2		RCC_APB2Periph_GPIOA
 	#define USART_PORT			USART1
 	#define USART_CLK2			RCC_APB2Periph_USART1
 	#define USART_GPIO			GPIOA
 	#define USART_TX_PIN		GPIO_Pin_9
 	#define USART_RX_PIN		GPIO_Pin_10
-	// #define USART_REMAP
 	#define USART_IRQn			USART1_IRQn
 	#define USART_IRQHandler	USART1_IRQHandler
 	#define USART_BUFFER_SIZE	(64)	/*	Size of Receive and Transmit buffers MUST BE 2^n */
 #endif
 
-// SWCLK/TCK Pin
-// SWDIO/TMS Pin
 #if   defined ( BOARD_V1 )
 
+	// SWDIO/TMS Pin
 	#define PIN_SWDIO_TMS_PORT      GPIOA
 	#define PIN_SWDIO_TMS_PIN		2
 
+	// SWCLK/TCK Pin
 	#define PIN_SWCLK_TCK_PORT		GPIOA
 	#define PIN_SWCLK_TCK_PIN		4
-
-#elif defined ( BOARD_V2 )
-
-	#define PIN_SWDIO_TMS_PORT		GPIOA
-	#define PIN_SWDIO_TMS_PIN		4
-
-	#define PIN_SWCLK_TCK_PORT		GPIOA
-	#define PIN_SWCLK_TCK_PIN		5
-
-#elif defined ( BOARD_STM32RF )
-
-	#define PIN_SWDIO_TMS_PORT		GPIOA
-	#define PIN_SWDIO_TMS_PIN		6
-
-	#define PIN_SWCLK_TCK_PORT		GPIOA
-	#define PIN_SWCLK_TCK_PIN		7
-
-#endif
-
-#if   defined ( BOARD_V1 )
 
 	// TDO/SWO Pin (input)
 	#define PIN_TDO_PORT            GPIOA
 	#define PIN_TDO					GPIO_Pin_5
+
 	// TDI Pin (output)
 	#define PIN_TDI_PORT			GPIOA
 	#define PIN_TDI					GPIO_Pin_7
+
 	// nRESET Pin
 	#define PIN_nRESET_PORT         GPIOA
-	#define PIN_nRESET				GPIO_Pin_6
+	#define PIN_nRESET_PIN			6
 
 #elif defined ( BOARD_V2 )
+
+	// SWDIO/TMS Pin
+	#define PIN_SWDIO_TMS_PORT		GPIOA
+	#define PIN_SWDIO_TMS_PIN		4
+
+	// SWCLK/TCK Pin
+	#define PIN_SWCLK_TCK_PORT		GPIOA
+	#define PIN_SWCLK_TCK_PIN		5
 
 	// TDO/SWO Pin (input)
 	#define PIN_TDO_PORT            GPIOA
 	#define PIN_TDO					GPIO_Pin_6
+
 	// TDI Pin (output)
 	#define PIN_TDI_PORT			GPIOA
 	#define PIN_TDI					GPIO_Pin_7
+
 	// nRESET Pin
 	#define PIN_nRESET_PORT         GPIOB
-	#define PIN_nRESET				GPIO_Pin_9
+	#define PIN_nRESET_PIN			9
 
 #elif defined ( BOARD_STM32RF )
 
+	// SWDIO/TMS Pin
+	#define PIN_SWDIO_TMS_PORT		GPIOA
+	#define PIN_SWDIO_TMS_PIN		6
+
+	// SWCLK/TCK Pin
+	#define PIN_SWCLK_TCK_PORT		GPIOA
+	#define PIN_SWCLK_TCK_PIN		7
+
 	// TDI Pin (output)
 	#define PIN_TDI_PORT			GPIOA
 	#define PIN_TDI					GPIO_Pin_7
+
 	// nRESET Pin
-	#define PIN_nRESET_PORT         GPIOB
-	#define PIN_nRESET				GPIO_Pin_9
+	#define PIN_nRESET_PORT			GPIOB
+	#define PIN_nRESET_PIN			9
+
+	// USB Connect Pull-Up
+	#define PIN_USB_CONNECT_RCC		RCC_APB2ENR_IOPBEN
+	#define PIN_USB_CONNECT_PORT    GPIOB
+	#define PIN_USB_CONNECT_PIN		5
+	#define PIN_USB_CONNECT         PIN_MASK(PIN_USB_CONNECT_PIN)
+	#define PIN_USB_MODE			GPIO_Mode_Out_PP
+	#define PIN_USB_CONNECT_ON()	PIN_USB_CONNECT_PORT->BSRR = PIN_USB_CONNECT
+	#define PIN_USB_CONNECT_OFF()	PIN_USB_CONNECT_PORT->BRR  = PIN_USB_CONNECT
 
 #endif
 
@@ -252,6 +262,15 @@ Provides definitions about:
 	#define LED_RUNNING_PORT		GPIOB
 	#define LED_RUNNING_PIN			GPIO_Pin_12
 	
+	// USB Connect Pull-Up
+	#define PIN_USB_CONNECT_RCC		RCC_APB2ENR_IOPAEN
+	#define PIN_USB_CONNECT_PORT    GPIOA
+	#define PIN_USB_CONNECT_PIN		8
+	#define PIN_USB_CONNECT         PIN_MASK(PIN_USB_CONNECT_PIN)
+	#define PIN_USB_MODE			GPIO_Mode_Out_PP
+	#define PIN_USB_CONNECT_ON()	PIN_USB_CONNECT_PORT->BSRR = PIN_USB_CONNECT
+	#define PIN_USB_CONNECT_OFF()	PIN_USB_CONNECT_PORT->BRR  = PIN_USB_CONNECT
+
 #elif defined ( BOARD_STM32RF )
 
 	#define LED_CONNECTED_RCC		RCC_APB2ENR_IOPBEN
@@ -265,42 +284,39 @@ Provides definitions about:
 	#define LED_RUNNING_PIN			GPIO_Pin_12
 	
 #endif
-	
-// USB Connect Pull-Up
-#if   defined ( BOARD_V1 )
 
-	#define PIN_USB_CONNECT_RCC		RCC_APB2ENR_IOPAEN
-	#define PIN_USB_CONNECT_PORT    GPIOA
-	#define PIN_USB_CONNECT_PIN		8
-	#define PIN_USB_CONNECT         PIN_MASK(PIN_USB_CONNECT_PIN)
-	#define PIN_USB_MODE			GPIO_Mode_Out_PP
-	#define PIN_USB_CONNECT_ON()	PIN_USB_CONNECT_PORT->BSRR = PIN_USB_CONNECT
-	#define PIN_USB_CONNECT_OFF()	PIN_USB_CONNECT_PORT->BRR  = PIN_USB_CONNECT
 
-#elif defined ( BOARD_V2 )
-
-	#define PIN_USB_CONNECT_RCC		RCC_APB2ENR_IOPAEN
-	#define PIN_USB_CONNECT_PORT    GPIOA
-	#define PIN_USB_CONNECT_PIN		8
-	#define PIN_USB_CONNECT         PIN_MASK(PIN_USB_CONNECT_PIN)
-	#define PIN_USB_MODE			GPIO_Mode_Out_PP
-	#define PIN_USB_CONNECT_ON()	PIN_USB_CONNECT_PORT->BSRR = PIN_USB_CONNECT
-	#define PIN_USB_CONNECT_OFF()	PIN_USB_CONNECT_PORT->BRR  = PIN_USB_CONNECT
-
-#elif defined ( BOARD_STM32RF )
-
-	#define PIN_USB_CONNECT_RCC		RCC_APB2ENR_IOPBEN
-	#define PIN_USB_CONNECT_PORT    GPIOB
-	#define PIN_USB_CONNECT_PIN		5
-	#define PIN_USB_CONNECT         PIN_MASK(PIN_USB_CONNECT_PIN)
-	#define PIN_USB_MODE			GPIO_Mode_Out_PP
-	#define PIN_USB_CONNECT_ON()	PIN_USB_CONNECT_PORT->BSRR = PIN_USB_CONNECT
-	#define PIN_USB_CONNECT_OFF()	PIN_USB_CONNECT_PORT->BRR  = PIN_USB_CONNECT
-
-#endif
-
+#define PIN_nRESET				PIN_MASK(PIN_nRESET_PIN)
 #define PIN_SWDIO_TMS			PIN_MASK(PIN_SWDIO_TMS_PIN)
 #define PIN_SWCLK_TCK			PIN_MASK(PIN_SWCLK_TCK_PIN)
+
+#if (PIN_nRESET_PIN >= 8)
+	#define PIN_nRESET_LOW()							\
+		do {											\
+			/* GPIO_Mode_Out_OD | GPIO_Speed_50MHz */	\
+			PIN_nRESET_PORT->CRH = (PIN_nRESET_PORT->CRH & ~PIN_MODE_MASK(PIN_nRESET_PIN - 8))	\
+									| PIN_MODE(((GPIO_Mode_Out_OD | GPIO_Speed_50MHz) & 0x0F), PIN_nRESET_PIN - 8);	\
+		} while (0)
+
+	#define PIN_nRESET_HIGH()							\
+		do {											\
+			PIN_nRESET_PORT->CRH = (PIN_nRESET_PORT->CRH & ~PIN_MODE_MASK(PIN_nRESET_PIN - 8))	\
+									| PIN_MODE(GPIO_Mode_IN_FLOATING, PIN_nRESET_PIN - 8);		\
+		} while (0)
+#else
+	#define PIN_nRESET_LOW()							\
+		do {											\
+			/* GPIO_Mode_Out_OD | GPIO_Speed_50MHz */	\
+			PIN_nRESET_PORT->CRL = (PIN_nRESET_PORT->CRL & ~PIN_MODE_MASK(PIN_nRESET_PIN))	\
+									| PIN_MODE(((GPIO_Mode_Out_OD | GPIO_Speed_50MHz) & 0x0F), PIN_nRESET_PIN);	\
+		} while (0)
+
+	#define PIN_nRESET_HIGH()							\
+		do {											\
+			PIN_nRESET_PORT->CRL = (PIN_nRESET_PORT->CRL & ~PIN_MODE_MASK(PIN_nRESET_PIN))	\
+									| PIN_MODE(GPIO_Mode_IN_FLOATING, PIN_nRESET_PIN);		\
+		} while (0)
+#endif
 
 //	For fast switch between input and output mode
 //	without GPIO_Init call
@@ -316,7 +332,6 @@ Provides definitions about:
 			PIN_SWDIO_TMS_PORT->CRH = (PIN_SWDIO_TMS_PORT->CRH & ~PIN_MODE_MASK(PIN_SWDIO_TMS_PIN - 8)) | PIN_MODE(0x3, PIN_SWDIO_TMS_PIN - 8);	\
 			PIN_SWDIO_TMS_PORT->BRR  = PIN_SWDIO_TMS;	\
 		} while (0)
-
 #else
 	#define PIN_SWDIO_TMS_OUT_DISABLE()					\
 		do {											\
@@ -392,7 +407,7 @@ Status LEDs. In detail the operation of Hardware I/O and LED pins are enabled an
 /** SWCLK/TCK I/O pin: Get Input.
 \return Current status of the SWCLK/TCK DAP hardware I/O pin.
 */
-__STATIC_INLINE uint32_t PIN_SWCLK_TCK_IN(void)
+__STATIC_INLINE uint8_t PIN_SWCLK_TCK_IN(void)
 {
 	return (PIN_SWCLK_TCK_PORT->ODR & PIN_SWCLK_TCK) ? 1 : 0;
 }
@@ -419,7 +434,7 @@ __STATIC_INLINE void PIN_SWCLK_TCK_CLR (void)
 /** SWDIO/TMS I/O pin: Get Input.
 \return Current status of the SWDIO/TMS DAP hardware I/O pin.
 */
-__STATIC_INLINE uint32_t PIN_SWDIO_TMS_IN(void)
+__STATIC_INLINE uint8_t PIN_SWDIO_TMS_IN(void)
 {
 	return (PIN_SWDIO_TMS_PORT->IDR & PIN_SWDIO_TMS) ? 1 : 0;
 }
@@ -443,7 +458,7 @@ __STATIC_INLINE void PIN_SWDIO_TMS_CLR(void)
 /** SWDIO I/O pin: Get Input (used in SWD mode only).
 \return Current status of the SWDIO DAP hardware I/O pin.
 */
-__STATIC_INLINE uint32_t PIN_SWDIO_IN (void)
+__STATIC_INLINE uint8_t PIN_SWDIO_IN (void)
 {
 	if (PIN_SWDIO_TMS_PORT->IDR & PIN_SWDIO_TMS)
 		return 1;
@@ -453,7 +468,7 @@ __STATIC_INLINE uint32_t PIN_SWDIO_IN (void)
 /** SWDIO I/O pin: Set Output (used in SWD mode only).
 \param bit Output value for the SWDIO DAP hardware I/O pin.
 */
-__STATIC_INLINE void PIN_SWDIO_OUT(uint32_t bit)
+__STATIC_INLINE void PIN_SWDIO_OUT(uint8_t bit)
 {
 	if (bit & 1)
 		PIN_SWDIO_TMS_PORT->BSRR = PIN_SWDIO_TMS;
@@ -485,7 +500,7 @@ __STATIC_INLINE void PIN_SWDIO_OUT_DISABLE(void)
 /** TDI I/O pin: Get Input.
 \return Current status of the TDI DAP hardware I/O pin.
 */
-__STATIC_INLINE uint32_t PIN_TDI_IN(void)
+__STATIC_INLINE uint8_t PIN_TDI_IN(void)
 {
 	return (PIN_TDI_PORT->ODR & PIN_TDI) ? 1 : 0;
 }
@@ -493,7 +508,7 @@ __STATIC_INLINE uint32_t PIN_TDI_IN(void)
 /** TDI I/O pin: Set Output.
 \param bit Output value for the TDI DAP hardware I/O pin.
 */
-__STATIC_INLINE void PIN_TDI_OUT(uint32_t bit)
+__STATIC_INLINE void PIN_TDI_OUT(uint8_t bit)
 {
 	if (bit & 1)
 		PIN_TDI_PORT->BSRR = PIN_TDI;
@@ -507,7 +522,7 @@ __STATIC_INLINE void PIN_TDI_OUT(uint32_t bit)
 /** TDO I/O pin: Get Input.
 \return Current status of the TDO DAP hardware I/O pin.
 */
-__STATIC_INLINE uint32_t PIN_TDO_IN(void)
+__STATIC_INLINE uint8_t PIN_TDO_IN(void)
 {
 	return (PIN_TDO_PORT->IDR & PIN_TDO) ? 1 : 0;
 }
@@ -518,7 +533,7 @@ __STATIC_INLINE uint32_t PIN_TDO_IN(void)
 /** nTRST I/O pin: Get Input.
 \return Current status of the nTRST DAP hardware I/O pin.
 */
-__STATIC_INLINE uint32_t PIN_nTRST_IN(void)
+__STATIC_INLINE uint8_t PIN_nTRST_IN(void)
 {
 	return (0);   // Not available
 }
@@ -528,7 +543,7 @@ __STATIC_INLINE uint32_t PIN_nTRST_IN(void)
            - 0: issue a JTAG TRST Test Reset.
            - 1: release JTAG TRST Test Reset.
 */
-__STATIC_INLINE void PIN_nTRST_OUT(uint32_t bit)
+__STATIC_INLINE void PIN_nTRST_OUT(uint8_t bit)
 {
 
 }
@@ -538,7 +553,7 @@ __STATIC_INLINE void PIN_nTRST_OUT(uint32_t bit)
 /** nRESET I/O pin: Get Input.
 \return Current status of the nRESET DAP hardware I/O pin.
 */
-__STATIC_INLINE uint32_t PIN_nRESET_IN(void)
+__STATIC_INLINE uint8_t PIN_nRESET_IN(void)
 {
 	if (PIN_nRESET_PORT->IDR & PIN_nRESET)
 		return 1;
@@ -550,17 +565,7 @@ __STATIC_INLINE uint32_t PIN_nRESET_IN(void)
            - 0: issue a device hardware reset.
            - 1: release device hardware reset.
 */
-__STATIC_INLINE void PIN_nRESET_OUT(uint32_t bit)
-{
-  	if (bit & 1)
-	{
-		PIN_nRESET_PORT->BSRR = PIN_nRESET;
-	}
-	else
-	{
-		PIN_nRESET_PORT->BRR = PIN_nRESET;
-	}
-}
+void PIN_nRESET_OUT(uint8_t bit);
 
 ///@}
 
@@ -610,7 +615,7 @@ when a device needs a time-critical unlock sequence that enables the debug port.
 \return 0 = no device specific reset sequence is implemented.\n
         1 = a device specific reset sequence is implemented.
 */
-__STATIC_INLINE uint32_t RESET_TARGET(void)
+__STATIC_INLINE uint8_t RESET_TARGET(void)
 {
 	return (0); // change to '1' when a device reset sequence is implemented
 }
