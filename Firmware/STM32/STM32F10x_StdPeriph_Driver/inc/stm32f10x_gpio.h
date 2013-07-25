@@ -60,7 +60,7 @@ typedef enum
   GPIO_Speed_10MHz = 1,
   GPIO_Speed_2MHz, 
   GPIO_Speed_50MHz
-}GPIOSpeed_TypeDef;
+} GPIOSpeed_TypeDef;
 #define IS_GPIO_SPEED(SPEED) (((SPEED) == GPIO_Speed_10MHz) || ((SPEED) == GPIO_Speed_2MHz) || \
                               ((SPEED) == GPIO_Speed_50MHz))
 

@@ -83,7 +83,7 @@ int main (void)
 			LedConnectedOn();
 		else if (led_count == 5)
 			LedConnectedOff();
-		else if (led_count == 100)
+		else if (led_count == 50)
 			led_count = 0;
 		Delay_ms(10);
 	}
@@ -109,7 +109,7 @@ int main (void)
 		else if (!usbd_hid_process())
 		{
 			// No packet processing
-			if (led_timeout == 500)
+			if (led_timeout == 1000)
 			{
 				LedConnectedOn();
 			}
@@ -252,7 +252,7 @@ PUTCHAR_PROTOTYPE
 const GPIO_InitTypeDef INIT_SWD_TDx = {
 	PIN_TDI | PIN_TDO,
 	(GPIOSpeed_TypeDef)0,
-	GPIO_Mode_IN_FLOATING
+	GPIO_Mode_IPU
 };
 #endif
 
@@ -310,19 +310,19 @@ void PORT_JTAG_SETUP()
 }
 #endif
 
-const GPIO_InitTypeDef port_off_all = {
+const GPIO_InitTypeDef INIT_OFF_1 = {
 #if ( DAP_JTAG != 0 )
 	(PIN_SWCLK_TCK | PIN_SWDIO_TMS | PIN_TDI | PIN_TDO),
 #else
 	(PIN_SWCLK_TCK | PIN_SWDIO_TMS),
 #endif
 	(GPIOSpeed_TypeDef)0,
-	GPIO_Mode_AIN
+	GPIO_Mode_IPU
 };
-const GPIO_InitTypeDef port_off_reset = {
+const GPIO_InitTypeDef INIT_OFF_2 = {
 	(PIN_nRESET),
 	(GPIOSpeed_TypeDef)0,
-	GPIO_Mode_AIN
+	GPIO_Mode_IPU
 };
 
 /** Disable JTAG/SWD I/O Pins.
@@ -331,8 +331,8 @@ Disables the DAP Hardware I/O pins which configures:
 */
 void PORT_OFF()
 {
-	GPIO_INIT(PIN_SWCLK_TCK_PORT, port_off_all);
-	GPIO_INIT(PIN_nRESET_PORT,    port_off_reset);
+	GPIO_INIT(PIN_SWCLK_TCK_PORT, INIT_OFF_1);
+	GPIO_INIT(PIN_nRESET_PORT,    INIT_OFF_2);
 }
 
 #if (USBD_CDC_ACM_ENABLE == 1)
@@ -374,15 +374,24 @@ void NotifyOnStatusChange (void)
 #endif
 
 const GPIO_InitTypeDef INIT_PINS_A = {
-	// SWDIO, SWDCLK, USB_DP, USB_DM
-	(uint16_t)~(GPIO_Pin_14 | GPIO_Pin_13 | GPIO_Pin_12 | GPIO_Pin_11),
-	GPIO_Speed_2MHz,
+	(GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_15),
+	(GPIOSpeed_TypeDef)0,
+	GPIO_Mode_IPD
+};
+const GPIO_InitTypeDef INIT_PINS_A3 = {
+	(GPIO_Pin_3),
+	(GPIOSpeed_TypeDef)0,
 	GPIO_Mode_AIN
 };
-const GPIO_InitTypeDef INIT_PINS_BC = {
-	GPIO_Pin_All,
-	GPIO_Speed_2MHz,
-	GPIO_Mode_AIN
+const GPIO_InitTypeDef INIT_PINS_B = {
+	(GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_9 | GPIO_Pin_10 | GPIO_Pin_11 | GPIO_Pin_14 | GPIO_Pin_15),
+	(GPIOSpeed_TypeDef)0,
+	GPIO_Mode_IPD
+};
+const GPIO_InitTypeDef INIT_PINS_C = {
+	(GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15),
+	(GPIOSpeed_TypeDef)0,
+	GPIO_Mode_IPD
 };
 
 void BoardInit(void)
@@ -393,8 +402,9 @@ void BoardInit(void)
 	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
 
 	GPIO_INIT(GPIOA, INIT_PINS_A);
-	GPIO_INIT(GPIOB, INIT_PINS_BC);
-	GPIO_INIT(GPIOC, INIT_PINS_BC);
+	GPIO_INIT(GPIOA, INIT_PINS_A3);
+	GPIO_INIT(GPIOB, INIT_PINS_B);
+	GPIO_INIT(GPIOC, INIT_PINS_C);
 
 	LEDS_SETUP();
 }
