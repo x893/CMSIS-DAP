@@ -261,7 +261,7 @@ Provides definitions about:
 	// Target Running LED (RED)
 	#define LED_RUNNING_PORT		GPIOB
 	#define LED_RUNNING_PIN			GPIO_Pin_12
-	
+
 	// USB Connect Pull-Up
 	#define PIN_USB_CONNECT_RCC		RCC_APB2ENR_IOPAEN
 	#define PIN_USB_CONNECT_PORT    GPIOA
