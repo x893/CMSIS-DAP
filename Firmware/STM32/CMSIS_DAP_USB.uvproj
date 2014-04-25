@@ -361,7 +361,7 @@
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER STM32F10X_MD BOARD_V1 STM32F102CB</Define>
               <Undefine></Undefine>
-              <IncludePath>.;.\STM32F10x_StdPeriph_Driver\inc</IncludePath>
+              <IncludePath>.;.\STM32F10x_StdPeriph_Driver\inc;.\USBStack\inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -536,13 +536,8 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>Lib</GroupName>
+          <GroupName>Source</GroupName>
           <Files>
-            <File>
-              <FileName>USB_CM3.lib</FileName>
-              <FileType>4</FileType>
-              <FilePath>.\USB_CM3.lib</FilePath>
-            </File>
             <File>
               <FileName>stm32f10x_gpio.c</FileName>
               <FileType>1</FileType>
@@ -567,6 +562,36 @@
               <FileName>stm32f10x_flash.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\STM32F10x_StdPeriph_Driver\src\stm32f10x_flash.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>USBStack</GroupName>
+          <Files>
+            <File>
+              <FileName>usbd_cdc_acm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>USBStack\src\usbd_cdc_acm.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_core.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>USBStack\src\usbd_core.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_core_cdc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>USBStack\src\usbd_core_cdc.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_core_hid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>USBStack\src\usbd_core_hid.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_hid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>USBStack\src\usbd_hid.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -927,7 +952,7 @@
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER STM32F10X_MD BOARD_V1</Define>
               <Undefine></Undefine>
-              <IncludePath>.;.\STM32F10x_StdPeriph_Driver\inc</IncludePath>
+              <IncludePath>.;.\STM32F10x_StdPeriph_Driver\inc;.\USBStack\inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -1102,13 +1127,8 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>Lib</GroupName>
+          <GroupName>Source</GroupName>
           <Files>
-            <File>
-              <FileName>USB_CM3.lib</FileName>
-              <FileType>4</FileType>
-              <FilePath>.\USB_CM3.lib</FilePath>
-            </File>
             <File>
               <FileName>stm32f10x_gpio.c</FileName>
               <FileType>1</FileType>
@@ -1133,6 +1153,36 @@
               <FileName>stm32f10x_flash.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\STM32F10x_StdPeriph_Driver\src\stm32f10x_flash.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>USBStack</GroupName>
+          <Files>
+            <File>
+              <FileName>usbd_cdc_acm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>USBStack\src\usbd_cdc_acm.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_core.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>USBStack\src\usbd_core.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_core_cdc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>USBStack\src\usbd_core_cdc.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_core_hid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>USBStack\src\usbd_core_hid.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_hid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>USBStack\src\usbd_hid.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1493,7 +1543,7 @@
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER STM32F10X_MD BOARD_V2</Define>
               <Undefine></Undefine>
-              <IncludePath>.;.\STM32F10x_StdPeriph_Driver\inc</IncludePath>
+              <IncludePath>.;.\STM32F10x_StdPeriph_Driver\inc;.\USBStack\inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -1668,13 +1718,8 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>Lib</GroupName>
+          <GroupName>Source</GroupName>
           <Files>
-            <File>
-              <FileName>USB_CM3.lib</FileName>
-              <FileType>4</FileType>
-              <FilePath>.\USB_CM3.lib</FilePath>
-            </File>
             <File>
               <FileName>stm32f10x_gpio.c</FileName>
               <FileType>1</FileType>
@@ -1699,6 +1744,36 @@
               <FileName>stm32f10x_flash.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\STM32F10x_StdPeriph_Driver\src\stm32f10x_flash.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>USBStack</GroupName>
+          <Files>
+            <File>
+              <FileName>usbd_cdc_acm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>USBStack\src\usbd_cdc_acm.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_core.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>USBStack\src\usbd_core.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_core_cdc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>USBStack\src\usbd_core_cdc.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_core_hid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>USBStack\src\usbd_core_hid.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_hid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>USBStack\src\usbd_hid.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -2059,7 +2134,7 @@
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER STM32F10X_MD BOARD_STM32RF</Define>
               <Undefine></Undefine>
-              <IncludePath>.;.\STM32F10x_StdPeriph_Driver\inc</IncludePath>
+              <IncludePath>.;.\STM32F10x_StdPeriph_Driver\inc;.\USBStack\inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -2234,13 +2309,8 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>Lib</GroupName>
+          <GroupName>Source</GroupName>
           <Files>
-            <File>
-              <FileName>USB_CM3.lib</FileName>
-              <FileType>4</FileType>
-              <FilePath>.\USB_CM3.lib</FilePath>
-            </File>
             <File>
               <FileName>stm32f10x_gpio.c</FileName>
               <FileType>1</FileType>
@@ -2265,6 +2335,36 @@
               <FileName>stm32f10x_flash.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\STM32F10x_StdPeriph_Driver\src\stm32f10x_flash.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>USBStack</GroupName>
+          <Files>
+            <File>
+              <FileName>usbd_cdc_acm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>USBStack\src\usbd_cdc_acm.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_core.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>USBStack\src\usbd_core.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_core_cdc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>USBStack\src\usbd_core_cdc.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_core_hid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>USBStack\src\usbd_core_hid.c</FilePath>
+            </File>
+            <File>
+              <FileName>usbd_hid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>USBStack\src\usbd_hid.c</FilePath>
             </File>
           </Files>
         </Group>

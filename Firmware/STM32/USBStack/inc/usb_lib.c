@@ -1,14 +1,18 @@
-/*------------------------------------------------------------------------------
- *      RL-ARM - USB
- *------------------------------------------------------------------------------
- *      Name:    usb_lib.c
- *      Purpose: System Configuration
- *      Rev.:    V4.71
- *------------------------------------------------------------------------------
- *      This code is part of the RealView Run-Time Library.
- *      Copyright (c) 2004-2013 KEIL - An ARM Company. All rights reserved.
- *----------------------------------------------------------------------------*/
-
+/* CMSIS-DAP Interface Firmware
+ * Copyright (c) 2009-2013 ARM Limited
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #include <RTL.h>
 #include <rl_usb.h>
 #include <..\..\RL\USB\INC\usb.h>
@@ -22,161 +26,6 @@
  *----------------------------------------------------------------------------*/
 
 #ifdef  __USB_CONFIG__
-
-
-/*------------------------------------------------------------------------------
- *      USB Host Configuration
- *----------------------------------------------------------------------------*/
-
-#if    (USBH0_ENABLE || USBH1_ENABLE)
-                                        /* Prepare constants                  */
-#define USBH_HC_NUM       (1 + USBH1_ENABLE)
-#define USBH_HC_MSK       (((USBH1_ENABLE & 1) << 1) | (USBH0_ENABLE & 1))
-#define USBH_OHCI_NUM     (1 + (USBH1_ENABLE * (USBH1_HC_IF == 1)))
-#define USBH_EHCI_NXP_NUM (1 + (USBH1_ENABLE * (USBH1_HC_IF == 2)))
-#define USBH_DCD_NUM      (((USBH_CLASS & 0x01) == 0x01) + ((USBH_CLASS & 0x02) == 0x02) + ((USBH_CLASS & 0x04) == 0x04))
-
-#if    (USBH0_ENABLE)
-#if    (USBH0_HC_IF == 1)
-extern  USBH_HCD         usbh0_hcd_ohci;
-extern  USBH_HWD_OHCI    usbh0_hwd_ohci;
-#define USBH0_HCD       &usbh0_hcd_ohci
-#define USBH0_HWD_OHCI  &usbh0_hwd_ohci
-#elif  (USBH0_HC_IF == 2)
-extern  USBH_HCD         usbh0_hcd_ehci_NXP;
-extern  USBH_HWD_EHCI    usbh0_hwd_ehci_NXP;
-#define USBH0_HCD       &usbh0_hcd_ehci_NXP
-#define USBH0_HWD_EHCI  &usbh0_hwd_ehci_NXP
-#else
-extern  USBH_HCD         usbh0_hcd;
-#define USBH0_HCD       &usbh0_hcd
-#endif
-#else
-#define USBH0_HCD        NULL
-#endif
-
-#if    (USBH1_ENABLE)
-#if    (USBH1_HC_IF == 1)
-extern  USBH_HCD         usbh1_hcd_ohci;
-extern  USBH1_HWD_OHCI   usbh1_hwd_ohci;
-#define USBH1_HCD       &usbh1_hcd_ohci
-#define USBH1_HWD_OHCI  &usbh1_hwd_ohci
-#elif  (USBH1_HC_IF == 2)
-extern  USBH_HCD         usbh1_hcd_ehci_NXP;
-extern  USBH_HWD_EHCI    usbh1_hwd_ehci_NXP;
-#define USBH1_HCD       &usbh1_hcd_ehci_NXP
-#define USBH1_HWD_EHCI  &usbh1_hwd_ehci_NXP
-#else
-extern  USBH_HCD         usbh1_hcd;
-#define USBH1_HCD       &usbh1_hcd
-#endif
-#else
-#define USBH1_HCD        NULL
-#endif
-
-                                        /* Define constants                   */
-const U8  usbh_hc_num          = USBH_HC_NUM;
-const U8  usbh_hc_msk          = USBH_HC_MSK;
-const U8  usbh_ohci_num        = USBH_OHCI_NUM;
-const U8  usbh_ehci_NXP_num    = USBH_EHCI_NXP_NUM;
-const U8  usbh_dcd_num         = USBH_DCD_NUM;
-const U8  usbh_msc_num         = USBH_MSC_NUM;
-const U8  usbh_hid_num         = USBH_HID_NUM;
-const U8  usbh_cls_num         = USBH_CLS_NUM;
-
-                                        /* Register Drivers                   */
-USBH_HCD *usbh_hcd_ptr[USBH_HC_NUM] = { /* Register Host Controller Drivers   */
-#if    (USBH0_ENABLE)
-                         USBH0_HCD,
-#else
-                         NULL,
-#endif
-#if    (USBH1_ENABLE)
-                         USBH1_HCD   
-#endif
-                       };
-
-#if   ((USBH0_ENABLE && (USBH0_HC_IF == 1)) || (USBH1_ENABLE && (USBH1_HC_IF == 1)))
-USBH_HWD_OHCI *usbh_hwd_ohci_ptr[USBH_OHCI_NUM] = { /* Register OHCI Hw Driver*/
-#if    (USBH0_ENABLE && (USBH0_HC_IF == 1))
-                         USBH0_HWD_OHCI,
-#else
-                         NULL,
-#endif
-#if    (USBH1_ENABLE && (USBH1_HC_IF == 1))
-                         USBH1_HWD_OHCI   
-#endif
-                       };
-#endif
-
-#if   ((USBH0_ENABLE && (USBH0_HC_IF == 2)) || (USBH1_ENABLE && (USBH1_HC_IF == 2)))
-                                        /* Register NXP EHCI Hw Driver        */
-USBH_HWD_EHCI *usbh_hwd_ehci_NXP_ptr[USBH_EHCI_NXP_NUM] = { 
-#if    (USBH0_ENABLE && (USBH0_HC_IF == 2))
-                         USBH0_HWD_EHCI,
-#else
-                         NULL,
-#endif
-#if    (USBH1_ENABLE && (USBH1_HC_IF == 2))
-                         USBH1_HWD_EHCI   
-#endif
-                       };
-#endif
-
-#if    (USBH_CLASS & 0x01) && (USBH_MSC_NUM)
-extern  USBH_DCD         usbh_dcd_msc;
-#endif
-#if    (USBH_CLASS & 0x02) && (USBH_HID_NUM)
-extern  USBH_DCD         usbh_dcd_hid;
-#endif
-#if    (USBH_CLASS & 0x04) && (USBH_CLS_NUM)
-extern  USBH_DCD         usbh_dcd_cls;
-#endif
-USBH_DCD *usbh_dcd_ptr[USBH_DCD_NUM] = {/* Register Class Drivers             */
-#if    (USBH_CLASS & 0x01) && (USBH_MSC_NUM)
-                        &usbh_dcd_msc,
-#endif
-#if    (USBH_CLASS & 0x02) && (USBH_HID_NUM)
-                        &usbh_dcd_hid,
-#endif
-#if    (USBH_CLASS & 0x04) && (USBH_CLS_NUM)
-                        &usbh_dcd_cls,
-#endif
-                      };
-
-USBH_HCI usbh_hci    [USBH_HC_NUM]  = { 0 };
-#if    (USBH_CLASS & 0x01) && (USBH_MSC_NUM)
-USBH_DCI usbh_dci_msc[USBH_HC_NUM * USBH_MSC_NUM] = { 0 };
-USBH_MSC usbh_msc    [USBH_HC_NUM * USBH_MSC_NUM] = { 0 };
-#endif
-#if    (USBH_CLASS & 0x02) && (USBH_HID_NUM)
-USBH_DCI usbh_dci_hid[USBH_HC_NUM * USBH_HID_NUM] = { 0 };
-USBH_HID usbh_hid    [USBH_HC_NUM * USBH_HID_NUM] = { 0 };
-#endif
-#if    (USBH_CLASS & 0x04) && (USBH_CLS_NUM)
-USBH_DCI usbh_dci_cls[USBH_HC_NUM * USBH_CLS_NUM] = { 0 };
-USBH_HID usbh_cls    [USBH_HC_NUM * USBH_CLS_NUM] = { 0 };
-#endif
-
-USBH_DCI *usbh_dci_ptr[3] = {
-#if    (USBH_CLASS & 0x01) && (USBH_MSC_NUM)
-  usbh_dci_msc,
-#else
-  NULL,
-#endif
-#if    (USBH_CLASS & 0x02) && (USBH_HID_NUM)
-  usbh_dci_hid,
-#else
-  NULL,
-#endif
-#if    (USBH_CLASS & 0x04) && (USBH_CLS_NUM)
-  usbh_dci_cls,
-#else
-  NULL,
-#endif
-};
-#endif
-
 
 /*------------------------------------------------------------------------------
  *      USB Device Configuration
@@ -199,12 +48,12 @@ const   U8   usbd_max_packet0           =  USBD_MAX_PACKET0;
 
 #if    (!USBD_HID_BINTERVAL)
   #define USBD_HID_INTERVAL                1
-#else 
+#else
   #define USBD_HID_INTERVAL                USBD_HID_BINTERVAL
 #endif
 #if    (!USBD_HID_HS_BINTERVAL)
   #define USBD_HID_HS_INTERVAL             1
-#else 
+#else
   #define USBD_HID_HS_INTERVAL            (2 << ((USBD_HID_HS_BINTERVAL & 0x0F)-1))
 #endif
 
@@ -581,7 +430,7 @@ const   U16  usbd_cdc_acm_maxpacketsize1[2] = {USBD_CDC_ACM_WMAXPACKETSIZE1, USB
       #elif  (USBD_MSC_EP_BULKIN == 15)
         #define USBD_RTX_EndPoint15            USBD_RTX_MSC_EP_BULKIN_Event
       #endif
-    
+
       #if    (USBD_MSC_EP_BULKOUT == 1)
         #define USBD_RTX_EndPoint1             USBD_RTX_MSC_EP_BULKOUT_Event
       #elif  (USBD_MSC_EP_BULKOUT == 2)
@@ -679,7 +528,7 @@ const   U16  usbd_cdc_acm_maxpacketsize1[2] = {USBD_CDC_ACM_WMAXPACKETSIZE1, USB
       #elif  (USBD_MSC_EP_BULKIN == 15)
         #define USBD_EndPoint15                USBD_MSC_EP_BULKIN_Event
       #endif
-    
+
       #if    (USBD_MSC_EP_BULKOUT == 1)
         #define USBD_EndPoint1                 USBD_MSC_EP_BULKOUT_Event
       #elif  (USBD_MSC_EP_BULKOUT == 2)
@@ -858,7 +707,7 @@ const   U16  usbd_cdc_acm_maxpacketsize1[2] = {USBD_CDC_ACM_WMAXPACKETSIZE1, USB
       #elif  (USBD_CDC_ACM_EP_BULKIN == 15)
         #define USBD_RTX_EndPoint15            USBD_RTX_CDC_ACM_EP_BULKIN_Event
       #endif
-    
+
       #if    (USBD_CDC_ACM_EP_BULKOUT == 1)
         #define USBD_RTX_EndPoint1             USBD_RTX_CDC_ACM_EP_BULKOUT_Event
       #elif  (USBD_CDC_ACM_EP_BULKOUT == 2)
@@ -956,7 +805,7 @@ const   U16  usbd_cdc_acm_maxpacketsize1[2] = {USBD_CDC_ACM_WMAXPACKETSIZE1, USB
       #elif  (USBD_CDC_ACM_EP_BULKIN == 15)
         #define USBD_EndPoint15                USBD_CDC_ACM_EP_BULKIN_Event
       #endif
-    
+
       #if    (USBD_CDC_ACM_EP_BULKOUT == 1)
         #define USBD_EndPoint1                 USBD_CDC_ACM_EP_BULKOUT_Event
       #elif  (USBD_CDC_ACM_EP_BULKOUT == 2)
@@ -1039,7 +888,7 @@ const   U16  usbd_cdc_acm_maxpacketsize1[2] = {USBD_CDC_ACM_WMAXPACKETSIZE1, USB
 
 #if   ((USBD_CDC_ACM_ENABLE))
   #ifndef __RTX
-  void USBD_Reset_Event (void) { 
+  void USBD_Reset_Event (void) {
     #if    (USBD_CDC_ACM_ENABLE)
     USBD_CDC_ACM_Reset_Event ();
     #endif
@@ -1049,7 +898,7 @@ const   U16  usbd_cdc_acm_maxpacketsize1[2] = {USBD_CDC_ACM_WMAXPACKETSIZE1, USB
 
 #if   ((USBD_HID_ENABLE) || (USBD_ADC_ENABLE) || (USBD_CDC_ACM_ENABLE) || (USBD_CLS_ENABLE))
   #ifndef __RTX
-  void USBD_SOF_Event (void) { 
+  void USBD_SOF_Event (void) {
     #if    (USBD_HID_ENABLE)
     USBD_HID_SOF_Event     ();
     #endif
@@ -1068,7 +917,7 @@ const   U16  usbd_cdc_acm_maxpacketsize1[2] = {USBD_CDC_ACM_WMAXPACKETSIZE1, USB
 
 /* USB Device - Device Events Callback Functions */
 __weak   void USBD_Power_Event       (BOOL power);
-__weak   void USBD_Reset_Event       (void); 
+__weak   void USBD_Reset_Event       (void);
 __weak   void USBD_Suspend_Event     (void);
 __weak   void USBD_Resume_Event      (void);
 __weak   void USBD_WakeUp_Event      (void);
@@ -1302,7 +1151,7 @@ U16  usbd_os_evt_get     (void)                                       { return (
 U32  usbd_os_evt_wait_or (U16 wait_flags, U16 timeout)                { return (0); }
 #endif
 
-void usbd_class_init     (void)                                       { 
+void usbd_class_init     (void)                                       {
 #if (USBD_HID_ENABLE)
                                                                         usbd_hid_init();
 #endif
@@ -1337,7 +1186,7 @@ void USBD_RTX_TaskInit (void) {
       USBD_RTX_EPTask[i] = os_tsk_create(USBD_RTX_P_EP[i], 2);
     }
   }
- 
+
   USBD_RTX_CoreTask = 0;
   if (USBD_RTX_P_Core) {
     USBD_RTX_CoreTask = os_tsk_create(USBD_RTX_Core,       2);
@@ -1349,22 +1198,15 @@ void USBD_RTX_TaskInit (void) {
 /*------------------------------------------------------------------------------
  *      USB Device Descriptors
  *----------------------------------------------------------------------------*/
-
-#define USBD_ADC_DESC_LEN                 (USBD_MULTI_IF * USB_INTERFACE_ASSOC_DESC_SIZE + USB_INTERFACE_DESC_SIZE +                              \
-                                           AUDIO_CONTROL_INTERFACE_DESC_SZ(1) + AUDIO_INPUT_TERMINAL_DESC_SIZE  +                                 \
-                                           AUDIO_FEATURE_UNIT_DESC_SZ(1,1) + AUDIO_OUTPUT_TERMINAL_DESC_SIZE + USB_INTERFACE_DESC_SIZE          + \
-                                           USB_INTERFACE_DESC_SIZE + AUDIO_STREAMING_INTERFACE_DESC_SIZE + AUDIO_FORMAT_TYPE_I_DESC_SZ(1)       + \
-                                           AUDIO_STANDARD_ENDPOINT_DESC_SIZE + AUDIO_STREAMING_ENDPOINT_DESC_SIZE)
-#define USBD_CDC_ACM_DESC_LEN             (USB_INTERFACE_DESC_SIZE + USBD_MULTI_IF * USB_INTERFACE_ASSOC_DESC_SIZE + 0x0013                     + \
+#define USBD_CDC_ACM_DESC_LEN             (USB_INTERFACE_DESC_SIZE + /*USBD_MULTI_IF * USB_INTERFACE_ASSOC_DESC_SIZE +*/ 0x0013                     + \
                                            USB_ENDPOINT_DESC_SIZE + USB_INTERFACE_DESC_SIZE + 2*USB_ENDPOINT_DESC_SIZE)
 #define USBD_HID_DESC_LEN                 (USB_INTERFACE_DESC_SIZE + USB_HID_DESC_SIZE                                                          + \
                                           (USB_ENDPOINT_DESC_SIZE*(1+(USBD_HID_EP_INTOUT != 0))))
 #define USBD_MSC_DESC_LEN                 (USB_INTERFACE_DESC_SIZE + 2*USB_ENDPOINT_DESC_SIZE)
 #define USBD_HID_DESC_OFS                 (USB_CONFIGUARTION_DESC_SIZE + USB_INTERFACE_DESC_SIZE                                                + \
-                                           USBD_ADC_ENABLE * USBD_ADC_DESC_LEN + USBD_CDC_ACM_ENABLE * USBD_CDC_ACM_DESC_LEN)
+                                           USBD_CDC_ACM_ENABLE * USBD_CDC_ACM_DESC_LEN)
 
 #define USBD_WTOTALLENGTH                 (USB_CONFIGUARTION_DESC_SIZE +                 \
-                                           USBD_ADC_DESC_LEN     * USBD_ADC_ENABLE     + \
                                            USBD_CDC_ACM_DESC_LEN * USBD_CDC_ACM_ENABLE + \
                                            USBD_HID_DESC_LEN     * USBD_HID_ENABLE     + \
                                            USBD_MSC_DESC_LEN     * USBD_MSC_ENABLE)
@@ -1428,14 +1270,14 @@ const U8 USBD_DeviceDescriptor[] = {
   USB_DEVICE_DESC_SIZE,                 /* bLength */
   USB_DEVICE_DESCRIPTOR_TYPE,           /* bDescriptorType */
 #if ((USBD_HS_ENABLE) || (USBD_MULTI_IF))
-  WBVAL(0x0200), /* 2.00 */             /* bcdUSB */
+  WBVAL(0x0110), /* 2.00 */             /* bcdUSB */
 #else
   WBVAL(0x0110), /* 1.10 */             /* bcdUSB */
 #endif
 #if (USBD_MULTI_IF)
-  USB_DEVICE_CLASS_MISCELLANEOUS,       /* bDeviceClass */
-  0x02,                                 /* bDeviceSubClass */
-  0x01,                                 /* bDeviceProtocol */
+  0x02,       /* bDeviceClass */
+  0x00,                                 /* bDeviceSubClass */
+  0x00,                                 /* bDeviceProtocol */
 #elif (USBD_CDC_ACM_ENABLE)
   USB_DEVICE_CLASS_COMMUNICATIONS,      /* bDeviceClass CDC*/
   0x00,                                 /* bDeviceSubClass */
@@ -1779,7 +1621,7 @@ const U8 USBD_DeviceQualifier_HS[] = { 0 };
   0x01,                                 /* bNumEndpoints: One endpoint used */                              \
   CDC_COMMUNICATION_INTERFACE_CLASS,    /* bInterfaceClass: Communication Interface Class */                \
   CDC_ABSTRACT_CONTROL_MODEL,           /* bInterfaceSubClass: Abstract Control Model */                    \
-  0x00,                                 /* bInterfaceProtocol: no protocol used */                          \
+  0x01,                                 /* bInterfaceProtocol: no protocol used */                          \
   USBD_CDC_ACM_CIF_STR_NUM,             /* iInterface: */                                                   \
                                                                                                             \
 /* Header Functional Descriptor */                                                                          \
@@ -1791,13 +1633,13 @@ const U8 USBD_DeviceQualifier_HS[] = { 0 };
   0x05,                                 /* bFunctionLength */                                               \
   CDC_CS_INTERFACE,                     /* bDescriptorType: CS_INTERFACE */                                 \
   CDC_CALL_MANAGEMENT,                  /* bDescriptorSubtype: Call Management Func Desc */                 \
-  0x01,                                 /* bmCapabilities: device handles call management */                \
-  0x01,                                 /* bDataInterface: CDC data IF ID */                                \
+  0x03,                                 /* bmCapabilities: device handles call management */                \
+  0x02,                                 /* bDataInterface: CDC data IF ID */                                \
 /* Abstract Control Management Functional Descriptor */                                                     \
   0x04,                                 /* bFunctionLength */                                               \
   CDC_CS_INTERFACE,                     /* bDescriptorType: CS_INTERFACE */                                 \
   CDC_ABSTRACT_CONTROL_MANAGEMENT,      /* bDescriptorSubtype: Abstract Control Management desc */          \
-  0x02,                                 /* bmCapabilities: SET_LINE_CODING, GET_LINE_CODING, SET_CONTROL_LINE_STATE supported */ \
+  0x06,                                 /* bmCapabilities: SET_LINE_CODING, GET_LINE_CODING, SET_CONTROL_LINE_STATE supported */ \
 /* Union Functional Descriptor */                                                                           \
   0x05,                                 /* bFunctionLength */                                               \
   CDC_CS_INTERFACE,                     /* bDescriptorType: CS_INTERFACE */                                 \
@@ -1884,7 +1726,7 @@ const U8 USBD_ConfigDescriptor[] = {
   (USBD_POWER << 6),
   USBD_CFGDESC_BMAXPOWER,               /* bMaxPower, device power consumption */
 
-#if (USBD_ADC_ENABLE)                                                                                  
+#if (USBD_ADC_ENABLE)
 #if (USBD_MULTI_IF)
   ADC_DESC_IAD(USBD_ADC_CIF_NUM,2)
 #endif
@@ -1892,9 +1734,14 @@ const U8 USBD_ConfigDescriptor[] = {
   ADC_EP
 #endif
 
-#if (USBD_CDC_ACM_ENABLE)                                                                                  
+#if (USBD_MSC_ENABLE)
+  MSC_DESC
+  MSC_EP
+#endif
+
+#if (USBD_CDC_ACM_ENABLE)
 #if (USBD_MULTI_IF)
-  CDC_ACM_DESC_IAD(USBD_CDC_ACM_CIF_NUM,2)
+  //CDC_ACM_DESC_IAD(USBD_CDC_ACM_CIF_NUM,2)
 #endif
   CDC_ACM_DESC_IF0
   CDC_ACM_EP_IF0
@@ -1911,10 +1758,6 @@ const U8 USBD_ConfigDescriptor[] = {
 #endif
 #endif
 
-#if (USBD_MSC_ENABLE)
-  MSC_DESC
-  MSC_EP
-#endif
 
 /* Terminator */                                                                                            \
   0                                     /* bLength */                                                       \
@@ -1944,7 +1787,7 @@ const U8 USBD_ConfigDescriptor_HS[] = {
   (USBD_POWER << 6),
   USBD_CFGDESC_BMAXPOWER,               /* bMaxPower, device power consumption */
 
-#if (USBD_ADC_ENABLE)                                                                                  
+#if (USBD_ADC_ENABLE)
 #if (USBD_MULTI_IF)
   ADC_DESC_IAD(USBD_ADC_CIF_NUM,2)
 #endif
@@ -1952,7 +1795,7 @@ const U8 USBD_ConfigDescriptor_HS[] = {
   ADC_EP_HS
 #endif
 
-#if (USBD_CDC_ACM_ENABLE)                                                                                  
+#if (USBD_CDC_ACM_ENABLE)
 #if (USBD_MULTI_IF)
   CDC_ACM_DESC_IAD(USBD_CDC_ACM_CIF_NUM,2)
 #endif
@@ -1995,7 +1838,7 @@ const U8 USBD_OtherSpeedConfigDescriptor[] = {
   (USBD_POWER << 6),
   USBD_CFGDESC_BMAXPOWER,               /* bMaxPower, device power consumption */
 
-#if (USBD_ADC_ENABLE)                                                                                  
+#if (USBD_ADC_ENABLE)
 #if (USBD_MULTI_IF)
   ADC_DESC_IAD(USBD_ADC_CIF_NUM,2)
 #endif
@@ -2003,7 +1846,7 @@ const U8 USBD_OtherSpeedConfigDescriptor[] = {
   ADC_EP_HS
 #endif
 
-#if (USBD_CDC_ACM_ENABLE)                                                                                  
+#if (USBD_CDC_ACM_ENABLE)
 #if (USBD_MULTI_IF)
   CDC_ACM_DESC_IAD(USBD_CDC_ACM_CIF_NUM,2)
 #endif
@@ -2046,7 +1889,7 @@ const U8 USBD_OtherSpeedConfigDescriptor_HS[] = {
   (USBD_POWER << 6),
   USBD_CFGDESC_BMAXPOWER,               /* bMaxPower, device power consumption */
 
-#if (USBD_ADC_ENABLE)                                                                                  
+#if (USBD_ADC_ENABLE)
 #if (USBD_MULTI_IF)
   ADC_DESC_IAD(USBD_ADC_CIF_NUM,2)
 #endif
@@ -2054,7 +1897,7 @@ const U8 USBD_OtherSpeedConfigDescriptor_HS[] = {
   ADC_EP
 #endif
 
-#if (USBD_CDC_ACM_ENABLE)                                                                                  
+#if (USBD_CDC_ACM_ENABLE)
 #if (USBD_MULTI_IF)
   CDC_ACM_DESC_IAD(USBD_CDC_ACM_CIF_NUM,2)
 #endif
@@ -2089,10 +1932,10 @@ const U8 USBD_OtherSpeedConfigDescriptor_HS[] = {
     U8  len;                            \
     U8  type;                           \
     U16 str[sizeof(USBD_##n)/2-1];      \
-  } desc##n                      
+  } desc##n
 
 #define USBD_STR_VAL(n)                  \
- { sizeof(USBD_##n), USB_STRING_DESCRIPTOR_TYPE, USBD_##n }  
+ { sizeof(USBD_##n), USB_STRING_DESCRIPTOR_TYPE, USBD_##n }
 
 __weak \
 const struct {
@@ -2100,7 +1943,7 @@ const struct {
     U8  len;
     U8  type;
     U16 langid;
-  } desc_langid;                      
+  } desc_langid;
   USBD_STR_DEF(STRDESC_MAN);
   USBD_STR_DEF(STRDESC_PROD);
 #if  (USBD_STRDESC_SER_ENABLE)
@@ -2122,7 +1965,7 @@ const struct {
   USBD_STR_DEF(MSC_STRDESC);
 #endif
 } USBD_StringDescriptor
-  = 
+  =
 {
   { 4, USB_STRING_DESCRIPTOR_TYPE, USBD_STRDESC_LANGID },
   USBD_STR_VAL(STRDESC_MAN),
