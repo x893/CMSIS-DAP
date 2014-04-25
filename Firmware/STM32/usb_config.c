@@ -98,7 +98,7 @@
 //       <i> when the device is fully operational (bMaxPower)
 //   </h>
 #define USBD_CFGDESC_BMATTRIBUTES   0x80
-#define USBD_CFGDESC_BMAXPOWER      0x32
+#define USBD_CFGDESC_BMAXPOWER      50
 
 //   <h> String Settings
 //     <i> These settings affect String Descriptor
