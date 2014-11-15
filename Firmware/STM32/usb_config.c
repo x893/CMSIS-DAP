@@ -98,7 +98,7 @@
 //       <i> when the device is fully operational (bMaxPower)
 //   </h>
 #define USBD_CFGDESC_BMATTRIBUTES   0x80
-#define USBD_CFGDESC_BMAXPOWER      50
+#define USBD_CFGDESC_BMAXPOWER      0x32
 
 //   <h> String Settings
 //     <i> These settings affect String Descriptor
@@ -118,7 +118,7 @@
 #define USBD_STRDESC_LANGID         0x0409
 #define USBD_STRDESC_MAN            L"X893 ARM"
 #define USBD_STRDESC_PROD           L"CMSIS-DAP"
-#define USBD_STRDESC_SER_ENABLE     0
+#define USBD_STRDESC_SER_ENABLE     1
 #define USBD_STRDESC_SER            L"0001A0000000"
 
 //   <e0> Class Support
@@ -334,12 +334,11 @@
 #define USBD_CDC_ACM_DIF_STRDESC        L"CMSIS-DAP DCI"
 #define USBD_CDC_ACM_SENDBUF_SIZE       64
 #define USBD_CDC_ACM_RECEIVEBUF_SIZE    64
-
-#if (((USBD_CDC_ACM_HS_ENABLE1) && (USBD_CDC_ACM_SENDBUF_SIZE < USBD_CDC_ACM_HS_WMAXPACKETSIZE1)) || (USBD_CDC_ACM_SENDBUF_SIZE < USBD_CDC_ACM_WMAXPACKETSIZE1))
-	#error "Send Buffer size must be larger or equal to Bulk In maximum packet size!"
+#if (((USBD_CDC_ACM_HS_ENABLE1) && (USBD_CDC_ACM_SENDBUF_SIZE    < USBD_CDC_ACM_HS_WMAXPACKETSIZE1)) || (USBD_CDC_ACM_SENDBUF_SIZE    < USBD_CDC_ACM_WMAXPACKETSIZE1))
+#error "Send Buffer size must be larger or equal to Bulk In maximum packet size!"
 #endif
 #if (((USBD_CDC_ACM_HS_ENABLE1) && (USBD_CDC_ACM_RECEIVEBUF_SIZE < USBD_CDC_ACM_HS_WMAXPACKETSIZE1)) || (USBD_CDC_ACM_RECEIVEBUF_SIZE < USBD_CDC_ACM_WMAXPACKETSIZE1))
-	#error "Receive Buffer size must be larger or equal to Bulk Out maximum packet size!"
+#error "Receive Buffer size must be larger or equal to Bulk Out maximum packet size!"
 #endif
 
 //     <e0> Custom Class Device
@@ -366,73 +365,75 @@
 
 /* USB Device Calculations ---------------------------------------------------*/
 
-#define USBD_IF_NUM			(USBD_HID_ENABLE+USBD_MSC_ENABLE+(USBD_ADC_ENABLE*2)+(USBD_CDC_ACM_ENABLE*2)+USBD_CLS_ENABLE)
-#define USBD_MULTI_IF		(USBD_CDC_ACM_ENABLE*(USBD_HID_ENABLE|USBD_MSC_ENABLE|USBD_ADC_ENABLE))
-#define MAX(x, y)			(((x) < (y)) ? (y) : (x))
-#define USBD_EP_NUM_CALC0	MAX((USBD_HID_ENABLE    * (USBD_HID_EP_INTIN     )), (USBD_HID_ENABLE     * (USBD_HID_EP_INTOUT != 0) * (USBD_HID_EP_INTOUT)))
-#define USBD_EP_NUM_CALC1	MAX((USBD_MSC_ENABLE    * (USBD_MSC_EP_BULKIN    )), (USBD_MSC_ENABLE     * (USBD_MSC_EP_BULKOUT)))
-#define USBD_EP_NUM_CALC2	MAX((USBD_ADC_ENABLE    * (USBD_ADC_EP_ISOOUT    )), (USBD_CDC_ACM_ENABLE * (USBD_CDC_ACM_EP_INTIN)))
-#define USBD_EP_NUM_CALC3	MAX((USBD_CDC_ACM_ENABLE* (USBD_CDC_ACM_EP_BULKIN)), (USBD_CDC_ACM_ENABLE * (USBD_CDC_ACM_EP_BULKOUT)))
-#define USBD_EP_NUM_CALC4	MAX(USBD_EP_NUM_CALC0, USBD_EP_NUM_CALC1)
-#define USBD_EP_NUM_CALC5	MAX(USBD_EP_NUM_CALC2, USBD_EP_NUM_CALC3)
-#define USBD_EP_NUM_CALC6	MAX(USBD_EP_NUM_CALC4, USBD_EP_NUM_CALC5)
-#define USBD_EP_NUM			(USBD_EP_NUM_CALC6)
+#define USBD_IF_NUM                (USBD_HID_ENABLE+USBD_MSC_ENABLE+(USBD_ADC_ENABLE*2)+(USBD_CDC_ACM_ENABLE*2)+USBD_CLS_ENABLE)
+#define USBD_MULTI_IF              (USBD_CDC_ACM_ENABLE*(USBD_HID_ENABLE|USBD_MSC_ENABLE|USBD_ADC_ENABLE))
+#define MAX(x, y)                (((x) < (y)) ? (y) : (x))
+#define USBD_EP_NUM_CALC0           MAX((USBD_HID_ENABLE    *(USBD_HID_EP_INTIN     )), (USBD_HID_ENABLE    *(USBD_HID_EP_INTOUT!=0)*(USBD_HID_EP_INTOUT)))
+#define USBD_EP_NUM_CALC1           MAX((USBD_MSC_ENABLE    *(USBD_MSC_EP_BULKIN    )), (USBD_MSC_ENABLE    *(USBD_MSC_EP_BULKOUT)))
+#define USBD_EP_NUM_CALC2           MAX((USBD_ADC_ENABLE    *(USBD_ADC_EP_ISOOUT    )), (USBD_CDC_ACM_ENABLE*(USBD_CDC_ACM_EP_INTIN)))
+#define USBD_EP_NUM_CALC3           MAX((USBD_CDC_ACM_ENABLE*(USBD_CDC_ACM_EP_BULKIN)), (USBD_CDC_ACM_ENABLE*(USBD_CDC_ACM_EP_BULKOUT)))
+#define USBD_EP_NUM_CALC4           MAX(USBD_EP_NUM_CALC0, USBD_EP_NUM_CALC1)
+#define USBD_EP_NUM_CALC5           MAX(USBD_EP_NUM_CALC2, USBD_EP_NUM_CALC3)
+#define USBD_EP_NUM_CALC6           MAX(USBD_EP_NUM_CALC4, USBD_EP_NUM_CALC5)
+#define USBD_EP_NUM                (USBD_EP_NUM_CALC6)
 
-#if (USBD_HID_ENABLE)
-	#if (USBD_MSC_ENABLE)
-		#if (((USBD_HID_EP_INTIN == USBD_MSC_EP_BULKIN)	|| (USBD_HID_EP_INTIN == USBD_MSC_EP_BULKIN))	|| \
-			((USBD_HID_EP_INTOUT != 0) && (USBD_HID_EP_INTOUT == USBD_MSC_EP_BULKIN) || \
-			(USBD_HID_EP_INTOUT  == USBD_MSC_EP_BULKOUT)))
-			#error "HID and Mass Storage Device Interface can not use same Endpoints!"
-		#endif
-	#endif
-	#if (USBD_ADC_ENABLE)
-		#if ((USBD_HID_EP_INTIN   == USBD_ADC_EP_ISOOUT)  || \
-			((USBD_HID_EP_INTOUT  != 0)                   && \
-			(USBD_HID_EP_INTOUT  == USBD_ADC_EP_ISOOUT)))
-			#error "HID and Audio Device Interface can not use same Endpoints!"
-		#endif
-	#endif
-	#if    (USBD_CDC_ACM_ENABLE)
-		#if  (((USBD_HID_EP_INTIN   == USBD_CDC_ACM_EP_INTIN)		|| \
-				(USBD_HID_EP_INTIN   == USBD_CDC_ACM_EP_BULKIN)		|| \
-				(USBD_HID_EP_INTIN   == USBD_CDC_ACM_EP_BULKOUT))	|| \
-				((USBD_HID_EP_INTOUT  != 0)							&& \
-				((USBD_HID_EP_INTOUT  == USBD_CDC_ACM_EP_INTIN)		|| \
-				(USBD_HID_EP_INTOUT  == USBD_CDC_ACM_EP_BULKIN)		|| \
-				(USBD_HID_EP_INTOUT  == USBD_CDC_ACM_EP_BULKOUT))))
-			#error "HID and Communication Device Interface can not use same Endpoints!"
-		#endif
-	#endif
+#if    (USBD_HID_ENABLE)
+#if    (USBD_MSC_ENABLE)
+#if ((((USBD_HID_EP_INTIN   == USBD_MSC_EP_BULKIN)  || \
+       (USBD_HID_EP_INTIN   == USBD_MSC_EP_BULKIN)))|| \
+      ((USBD_HID_EP_INTOUT  != 0)                   && \
+       (USBD_HID_EP_INTOUT  == USBD_MSC_EP_BULKIN)  || \
+       (USBD_HID_EP_INTOUT  == USBD_MSC_EP_BULKOUT)))
+#error "HID and Mass Storage Device Interface can not use same Endpoints!"
+#endif
+#endif
+#if    (USBD_ADC_ENABLE)
+#if   ((USBD_HID_EP_INTIN   == USBD_ADC_EP_ISOOUT)  || \
+      ((USBD_HID_EP_INTOUT  != 0)                   && \
+       (USBD_HID_EP_INTOUT  == USBD_ADC_EP_ISOOUT)))
+#error "HID and Audio Device Interface can not use same Endpoints!"
+#endif
+#endif
+#if    (USBD_CDC_ACM_ENABLE)
+#if  (((USBD_HID_EP_INTIN   == USBD_CDC_ACM_EP_INTIN)   || \
+       (USBD_HID_EP_INTIN   == USBD_CDC_ACM_EP_BULKIN)  || \
+       (USBD_HID_EP_INTIN   == USBD_CDC_ACM_EP_BULKOUT))|| \
+      ((USBD_HID_EP_INTOUT  != 0)                       && \
+      ((USBD_HID_EP_INTOUT  == USBD_CDC_ACM_EP_INTIN)   || \
+       (USBD_HID_EP_INTOUT  == USBD_CDC_ACM_EP_BULKIN)  || \
+       (USBD_HID_EP_INTOUT  == USBD_CDC_ACM_EP_BULKOUT))))
+#error "HID and Communication Device Interface can not use same Endpoints!"
+#endif
+#endif
 #endif
 
 #if    (USBD_MSC_ENABLE)
-	#if (USBD_ADC_ENABLE)
-		#if ((USBD_MSC_EP_BULKIN  == USBD_ADC_EP_ISOOUT)  || \
-			(USBD_MSC_EP_BULKOUT == USBD_ADC_EP_ISOOUT))
-			#error "Mass Storage Device and Audio Device Interface can not use same Endpoints!"
-		#endif
-	#endif
-	#if    (USBD_CDC_ACM_ENABLE)
-		#if ((USBD_MSC_EP_BULKIN  == USBD_CDC_ACM_EP_INTIN)   || \
-			(USBD_MSC_EP_BULKIN  == USBD_CDC_ACM_EP_BULKIN)  || \
-			(USBD_MSC_EP_BULKIN  == USBD_CDC_ACM_EP_BULKOUT) || \
-			(USBD_MSC_EP_BULKOUT == USBD_CDC_ACM_EP_INTIN)   || \
-			(USBD_MSC_EP_BULKOUT == USBD_CDC_ACM_EP_BULKIN)  || \
-			(USBD_MSC_EP_BULKOUT == USBD_CDC_ACM_EP_BULKOUT))
-			#error "Mass Storage Device and Communication Device Interface can not use same Endpoints!"
-		#endif
-	#endif
+#if    (USBD_ADC_ENABLE)
+#if   ((USBD_MSC_EP_BULKIN  == USBD_ADC_EP_ISOOUT)  || \
+       (USBD_MSC_EP_BULKOUT == USBD_ADC_EP_ISOOUT))
+#error "Mass Storage Device and Audio Device Interface can not use same Endpoints!"
+#endif
+#endif
+#if    (USBD_CDC_ACM_ENABLE)
+#if   ((USBD_MSC_EP_BULKIN  == USBD_CDC_ACM_EP_INTIN)   || \
+       (USBD_MSC_EP_BULKIN  == USBD_CDC_ACM_EP_BULKIN)  || \
+       (USBD_MSC_EP_BULKIN  == USBD_CDC_ACM_EP_BULKOUT) || \
+       (USBD_MSC_EP_BULKOUT == USBD_CDC_ACM_EP_INTIN)   || \
+       (USBD_MSC_EP_BULKOUT == USBD_CDC_ACM_EP_BULKIN)  || \
+       (USBD_MSC_EP_BULKOUT == USBD_CDC_ACM_EP_BULKOUT))
+#error "Mass Storage Device and Communication Device Interface can not use same Endpoints!"
+#endif
+#endif
 #endif
 
-#if (USBD_ADC_ENABLE)
-	#if (USBD_CDC_ACM_ENABLE)
-		#if ((USBD_ADC_EP_ISOOUT  == USBD_CDC_ACM_EP_INTIN)   || \
-			(USBD_ADC_EP_ISOOUT  == USBD_CDC_ACM_EP_BULKIN)  || \
-			(USBD_ADC_EP_ISOOUT  == USBD_CDC_ACM_EP_BULKOUT))
-			#error "Audio Device and Communication Device Interface can not use same Endpoints!"
-		#endif
-	#endif
+#if    (USBD_ADC_ENABLE)
+#if    (USBD_CDC_ACM_ENABLE)
+#if   ((USBD_ADC_EP_ISOOUT  == USBD_CDC_ACM_EP_INTIN)   || \
+       (USBD_ADC_EP_ISOOUT  == USBD_CDC_ACM_EP_BULKIN)  || \
+       (USBD_ADC_EP_ISOOUT  == USBD_CDC_ACM_EP_BULKOUT))
+#error "Audio Device and Communication Device Interface can not use same Endpoints!"
+#endif
+#endif
 #endif
 
 #define USBD_ADC_CIF_NUM           (0)
@@ -452,20 +453,20 @@
 #define USBD_MSC_IF_STR_NUM        (3+USBD_STRDESC_SER_ENABLE+USBD_ADC_ENABLE*3+USBD_CDC_ACM_ENABLE*2+USBD_HID_ENABLE)
 
 #if    (USBD_HID_ENABLE)
-	#if    (USBD_HID_HS_ENABLE)
-		#define USBD_HID_MAX_PACKET	((USBD_HID_HS_WMAXPACKETSIZE > USBD_HID_WMAXPACKETSIZE) ? USBD_HID_HS_WMAXPACKETSIZE : USBD_HID_WMAXPACKETSIZE)
-	#else
-		#define USBD_HID_MAX_PACKET	(USBD_HID_WMAXPACKETSIZE)
-	#endif
+#if    (USBD_HID_HS_ENABLE)
+#define USBD_HID_MAX_PACKET       ((USBD_HID_HS_WMAXPACKETSIZE > USBD_HID_WMAXPACKETSIZE) ? USBD_HID_HS_WMAXPACKETSIZE : USBD_HID_WMAXPACKETSIZE)
 #else
-	#define USBD_HID_MAX_PACKET		(0)
+#define USBD_HID_MAX_PACKET        (USBD_HID_WMAXPACKETSIZE)
+#endif
+#else
+#define USBD_HID_MAX_PACKET        (0)
 #endif
 
 #if    (USBD_MSC_ENABLE)
 	#if    (USBD_MSC_HS_ENABLE)
-		#define USBD_MSC_MAX_PACKET	((USBD_MSC_HS_WMAXPACKETSIZE > USBD_MSC_WMAXPACKETSIZE) ? USBD_MSC_HS_WMAXPACKETSIZE : USBD_MSC_WMAXPACKETSIZE)
+		#define USBD_MSC_MAX_PACKET			((USBD_MSC_HS_WMAXPACKETSIZE > USBD_MSC_WMAXPACKETSIZE) ? USBD_MSC_HS_WMAXPACKETSIZE : USBD_MSC_WMAXPACKETSIZE)
 	#else
-		#define USBD_MSC_MAX_PACKET	(USBD_MSC_WMAXPACKETSIZE)
+		#define USBD_MSC_MAX_PACKET			(USBD_MSC_WMAXPACKETSIZE)
 	#endif
 #else
 	#define USBD_MSC_MAX_PACKET		(0)
@@ -473,9 +474,9 @@
 
 #if    (USBD_ADC_ENABLE)
 	#if    (USBD_ADC_HS_ENABLE)
-		#define USBD_ADC_MAX_PACKET	((USBD_ADC_HS_WMAXPACKETSIZE > USBD_ADC_WMAXPACKETSIZE) ? USBD_ADC_HS_WMAXPACKETSIZE : USBD_ADC_WMAXPACKETSIZE)
+		#define USBD_ADC_MAX_PACKET			((USBD_ADC_HS_WMAXPACKETSIZE > USBD_ADC_WMAXPACKETSIZE) ? USBD_ADC_HS_WMAXPACKETSIZE : USBD_ADC_WMAXPACKETSIZE)
 	#else
-		#define USBD_ADC_MAX_PACKET	(USBD_ADC_WMAXPACKETSIZE)
+		#define USBD_ADC_MAX_PACKET			(USBD_ADC_WMAXPACKETSIZE)
 	#endif
 #else
 	#define USBD_ADC_MAX_PACKET		(0)
@@ -497,10 +498,10 @@
 	#define USBD_CDC_ACM_MAX_PACKET1		(0)
 #endif
 
-#define USBD_MAX_PACKET_CALC0	((USBD_HID_MAX_PACKET   > USBD_HID_MAX_PACKET      ) ? (USBD_HID_MAX_PACKET  ) : (USBD_HID_MAX_PACKET      ))
-#define USBD_MAX_PACKET_CALC1	((USBD_ADC_MAX_PACKET   > USBD_CDC_ACM_MAX_PACKET  ) ? (USBD_ADC_MAX_PACKET  ) : (USBD_CDC_ACM_MAX_PACKET  ))
-#define USBD_MAX_PACKET_CALC2	((USBD_MAX_PACKET_CALC0 > USBD_MAX_PACKET_CALC1    ) ? (USBD_MAX_PACKET_CALC0) : (USBD_MAX_PACKET_CALC1    ))
-#define USBD_MAX_PACKET			((USBD_MAX_PACKET_CALC2 > USBD_CDC_ACM_MAX_PACKET1 ) ? (USBD_MAX_PACKET_CALC2) : (USBD_CDC_ACM_MAX_PACKET1 ))
+#define USBD_MAX_PACKET_CALC0     ((USBD_HID_MAX_PACKET   > USBD_HID_MAX_PACKET      ) ? (USBD_HID_MAX_PACKET  ) : (USBD_HID_MAX_PACKET      ))
+#define USBD_MAX_PACKET_CALC1     ((USBD_ADC_MAX_PACKET   > USBD_CDC_ACM_MAX_PACKET  ) ? (USBD_ADC_MAX_PACKET  ) : (USBD_CDC_ACM_MAX_PACKET  ))
+#define USBD_MAX_PACKET_CALC2     ((USBD_MAX_PACKET_CALC0 > USBD_MAX_PACKET_CALC1    ) ? (USBD_MAX_PACKET_CALC0) : (USBD_MAX_PACKET_CALC1    ))
+#define USBD_MAX_PACKET           ((USBD_MAX_PACKET_CALC2 > USBD_CDC_ACM_MAX_PACKET1 ) ? (USBD_MAX_PACKET_CALC2) : (USBD_CDC_ACM_MAX_PACKET1 ))
 
 
 /*------------------------------------------------------------------------------
@@ -508,10 +509,9 @@
  *----------------------------------------------------------------------------*/
 
 #ifndef  __USB_CONFIG___
-#define  __USB_CONFIG__
+	#define  __USB_CONFIG__
 
-#ifndef  __NO_USB_LIB_C
-#include <usb_lib.c>
-#endif
-
+	#ifndef  __NO_USB_LIB_C
+		#include <usb_lib.c>
+	#endif
 #endif  /* __USB_CONFIG__ */

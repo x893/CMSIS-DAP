@@ -45,7 +45,7 @@ const CoreDescriptor_t CoreDescriptor = {
 uint32_t led_count;
 uint32_t led_timeout;
 
-int main (void)
+int main(void)
 {
 	BoardInit();
 	SystemCoreClockUpdate();
@@ -58,6 +58,8 @@ int main (void)
 	}
 	LedConnectedOff();
 
+	Delay_ms(100);
+	/*
 	led_count = 0;
 	// Check for USB connected
 	while ((GPIOA->IDR & GPIO_Pin_11) != 0)
@@ -71,7 +73,7 @@ int main (void)
 		Delay_ms(10);
 	}
 	LedConnectedOff();
-
+	*/
 	// USB Device Initialization and connect
 	usbd_init();
 	usbd_connect(__TRUE);
@@ -193,6 +195,8 @@ void Delay_ms(uint32_t delay)
 	PIN_DELAY_SLOW(delay);
 }
 
+extern uint32_t __Vectors;
+
 void HardFault_Handler(void);
 void NMI_Handler(void)			__attribute((alias("HardFault_Handler")));
 void MemManage_Handler(void)	__attribute((alias("HardFault_Handler")));
@@ -201,20 +205,28 @@ void UsageFault_Handler(void)	__attribute((alias("HardFault_Handler")));
 void SVC_Handler(void)			__attribute((alias("HardFault_Handler")));
 void DebugMon_Handler(void)		__attribute((alias("HardFault_Handler")));
 void PendSV_Handler(void)		__attribute((alias("HardFault_Handler")));
+
 void HardFault_Handler(void)
 {
 	__disable_irq();
+	__set_MSP(__Vectors);
 	LEDS_SETUP();
-	while(1)
 	{
-		LedRunningOn();
-		Delay_ms(250);
-		LedRunningOff();
-		LedConnectedOn();
-		Delay_ms(250);
-		LedConnectedOff();
-		Delay_ms(500);		// Wait for 500ms
+		register int count;
+		for (count = 0; count < 5; count++)
+		{
+			LedRunningOn();
+			Delay_ms(250);
+			LedRunningOff();
+
+			LedConnectedOn();
+			Delay_ms(250);
+			LedConnectedOff();
+
+			Delay_ms(1000);
+		}
 	}
+	NVIC_SystemReset();
 }
 
 
@@ -374,9 +386,14 @@ void NotifyOnStatusChange (void)
 #endif
 
 const GPIO_InitTypeDef INIT_PINS_A = {
-	(GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_15),
+	(	GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2 |
+		GPIO_Pin_4 | GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7 |
+		GPIO_Pin_8 |
+		GPIO_Pin_9 | GPIO_Pin_10 |
+		GPIO_Pin_15
+	),
 	(GPIOSpeed_TypeDef)0,
-	GPIO_Mode_IPD
+	GPIO_Mode_AIN
 };
 const GPIO_InitTypeDef INIT_PINS_A3 = {
 	(GPIO_Pin_3),
@@ -384,14 +401,19 @@ const GPIO_InitTypeDef INIT_PINS_A3 = {
 	GPIO_Mode_AIN
 };
 const GPIO_InitTypeDef INIT_PINS_B = {
-	(GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_9 | GPIO_Pin_10 | GPIO_Pin_11 | GPIO_Pin_14 | GPIO_Pin_15),
+	(	GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7 | GPIO_Pin_8 |
+		GPIO_Pin_9 |
+		GPIO_Pin_10 | GPIO_Pin_11 |
+		GPIO_Pin_12 | GPIO_Pin_13 |
+		GPIO_Pin_14 | GPIO_Pin_15
+	),
 	(GPIOSpeed_TypeDef)0,
-	GPIO_Mode_IPD
+	GPIO_Mode_AIN
 };
 const GPIO_InitTypeDef INIT_PINS_C = {
 	(GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15),
 	(GPIOSpeed_TypeDef)0,
-	GPIO_Mode_IPD
+	GPIO_Mode_AIN
 };
 
 void BoardInit(void)
@@ -417,7 +439,7 @@ void USBD_Error_Event(void)
 	usbd_connect(__FALSE);
 	usbd_reset_core();
 
-	while(1);
+	HardFault_Handler();
 }
 
 

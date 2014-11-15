@@ -1,3 +1,4 @@
+#include <string.h>
 #include <RTL.h>
 #include <rl_usb.h>
 
@@ -10,11 +11,11 @@
 #include "usbd_user_cdc_acm.h"
 
 static struct {
-			uint8_t		data[USART_BUFFER_SIZE];
 	volatile uint16_t	idx_in;
 	volatile uint16_t	idx_out;
 	volatile int16_t	cnt_in;
 	volatile int16_t	cnt_out;
+	uint8_t		data[USART_BUFFER_SIZE];
 } WrBuffer, RdBuffer;
 
 static USART_InitTypeDef UART_Config;
@@ -27,11 +28,8 @@ static CDC_LINE_CODING line_coding_current;
  * UART_Reset:  Reset the Serial module variables
  *----------------------------------------------------------------------------*/
 
-int32_t UART_Reset (void)
+int32_t UART_Reset(void)
 {
-	uint8_t *ptr;
-	int32_t  i;
-
 	NVIC_DisableIRQ(USART_IRQn);	/* Disable USART interrupt */
 
 	SendBreakFlag    = 0;
@@ -44,12 +42,10 @@ int32_t UART_Reset (void)
 
 	USBD_CDC_ACM_PortSetLineCoding(&line_coding_current);
 
-	ptr = (uint8_t *)&WrBuffer;
-	for (i = 0; i < sizeof(WrBuffer); i++) *ptr++ = 0;
-	ptr = (uint8_t *)&RdBuffer;
-	for (i = 0; i < sizeof(RdBuffer); i++) *ptr++ = 0;
+	memset(WrBuffer.data, 0, sizeof(WrBuffer));
+	memset(RdBuffer.data, 0, sizeof(RdBuffer));
 
-	NVIC_EnableIRQ(USART_IRQn);		/* Enable USART interrupt */
+	NVIC_EnableIRQ(USART_IRQn);		// Enable USART interrupt
 	return (1);
 }
 
@@ -81,11 +77,8 @@ int32_t USBD_CDC_ACM_PortInitialize (void)
 	GPIO_PinRemapConfig(USART_REMAP, ENABLE);
 #endif
 
-	GPIO_INIT(USART_GPIO, rx_init);
-	GPIO_INIT(USART_GPIO, tx_init);
-
 #if   defined ( USART_CLK2 )
-	RCC_APB2PeriphClockCmd(USART_CLK2, ENABLE); 
+	RCC_APB2PeriphClockCmd(USART_CLK2, ENABLE);
 #elif defined ( USART_CLK1 )
 	RCC_APB1PeriphClockCmd(USART_CLK1, ENABLE);
 #else
@@ -93,6 +86,10 @@ int32_t USBD_CDC_ACM_PortInitialize (void)
 #endif
 
 	UART_Reset();
+
+	GPIO_INIT(USART_GPIO, rx_init);
+	GPIO_INIT(USART_GPIO, tx_init);
+
 	return (1);
 }
 
@@ -144,7 +141,7 @@ int32_t USBD_CDC_ACM_PortReset (void)
     \return             0        Function failed.
     \return             1        Function succeeded.
  */
-int32_t USBD_CDC_ACM_PortSetLineCoding (CDC_LINE_CODING *line_coding)
+int32_t USBD_CDC_ACM_PortSetLineCoding(CDC_LINE_CODING *line_coding)
 {
 	USART_InitTypeDef * config = &UART_Config;
 	
@@ -153,7 +150,9 @@ int32_t USBD_CDC_ACM_PortSetLineCoding (CDC_LINE_CODING *line_coding)
 	*/
   
 	/* Data bits */
-	if (line_coding->bDataBits != UART_DATA_BITS_8) return(0);
+	if (line_coding->bDataBits != UART_DATA_BITS_8)
+		return(0);
+
 	config->USART_WordLength	= USART_WordLength_8b;
 
 	/* Parity */
@@ -233,11 +232,9 @@ int32_t UART_WriteData (uint8_t *data, uint16_t size)
 	int32_t cnt = 0;
 	int16_t  len_in_buf;
 
-	if (size == 0)
-		return (0);
-
-	while (size--)
+	while (size != 0)
 	{
+		--size;
 		len_in_buf = WrBuffer.cnt_in - WrBuffer.cnt_out;
 		if (len_in_buf < USART_BUFFER_SIZE)
 		{
@@ -247,10 +244,10 @@ int32_t UART_WriteData (uint8_t *data, uint16_t size)
 			cnt++;
 		}
 	}
-	USART_ITConfig(USART_PORT, USART_IT_TXE, ENABLE);
+	if (cnt != 0)
+		USART_ITConfig(USART_PORT, USART_IT_TXE, ENABLE);
 	return (cnt);
 }
-
 
 /*------------------------------------------------------------------------------
  * UART_ReadData:     Read data to buffer
@@ -258,11 +255,11 @@ int32_t UART_WriteData (uint8_t *data, uint16_t size)
 
 int32_t UART_ReadData (uint8_t *data, uint16_t size)
 {
-	uint32_t cnt = 0;
-	if (size == 0) return (0);
-  
-	while (size--)
+	int32_t cnt = 0;
+
+	while (size != 0)
 	{
+		--size;
 		if (RdBuffer.cnt_in != RdBuffer.cnt_out)
 		{
 			*data++ = RdBuffer.data[RdBuffer.idx_out++];
@@ -280,6 +277,7 @@ int32_t UART_ReadData (uint8_t *data, uint16_t size)
 int32_t UART_GetChar (void)
 {
 	uint8_t ch;
+
 	if ((UART_ReadData(&ch, 1)) == 1)
 		return ((int32_t)ch);
 	else

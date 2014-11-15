@@ -73,15 +73,4 @@ int32_t  UART_GetBreak                    (void);
 int32_t  UART_GetChar                     (void);
 int32_t  UART_PutChar                     (uint8_t ch);
 
-/*
-extern int32_t  UART_GetConfiguration            (USART_InitTypeDef *config);
-extern int32_t  UART_WriteData                   (uint8_t *data, uint16_t size);
-extern int32_t  UART_ReadData                    (uint8_t *data, uint16_t size);
-extern int32_t  UART_DataAvailable               (void);
-extern int32_t  UART_SetControlLineState         (uint16_t ls, uint16_t msk);
-extern uint16_t UART_GetControlLineState         (             uint16_t msk);
-extern int32_t  UART_SetBreak                    (void);
-extern int32_t  UART_ClearBreak                  (void);
-*/
-
 #endif /* __UART_H */
