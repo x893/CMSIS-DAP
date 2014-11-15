@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="6.4">
+<eagle version="7.1.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="yes"/>
@@ -4548,7 +4548,7 @@ Source: www.kingbright.com</description>
 <pinref part="IC1" gate="AN_POWER" pin="VDDA"/>
 </segment>
 </net>
-<net name="PA9" class="0">
+<net name="PA9-TX" class="0">
 <segment>
 <wire x1="218.44" y1="134.62" x2="193.04" y2="134.62" width="0.1524" layer="91"/>
 <wire x1="193.04" y1="134.62" x2="193.04" y2="149.86" width="0.1524" layer="91"/>
@@ -4632,7 +4632,7 @@ Source: www.kingbright.com</description>
 <pinref part="R2" gate="G$1" pin="2"/>
 </segment>
 </net>
-<net name="PA10" class="0">
+<net name="PA10-RX" class="0">
 <segment>
 <wire x1="218.44" y1="132.08" x2="190.5" y2="132.08" width="0.1524" layer="91"/>
 <wire x1="190.5" y1="132.08" x2="190.5" y2="147.32" width="0.1524" layer="91"/>

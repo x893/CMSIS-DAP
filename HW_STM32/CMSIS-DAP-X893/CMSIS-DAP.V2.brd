@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="6.4">
+<eagle version="7.1.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="yes"/>
@@ -632,6 +632,9 @@ design rules under a new name.</description>
 <autorouter>
 <pass name="Default">
 <param name="RoutingGrid" value="50mil"/>
+<param name="AutoGrid" value="1"/>
+<param name="Efforts" value="0"/>
+<param name="TopRouterVariant" value="1"/>
 <param name="tpViaShape" value="round"/>
 <param name="PrefDir.1" value="|"/>
 <param name="PrefDir.2" value="0"/>
@@ -973,7 +976,7 @@ design rules under a new name.</description>
 <wire x1="15.6" y1="8.4" x2="15.75" y2="8.4" width="0.25" layer="16"/>
 <wire x1="15.75" y1="8.4" x2="15.4" y2="8.45" width="0.25" layer="16"/>
 </signal>
-<signal name="PA9">
+<signal name="PA9-TX">
 <contactref element="IC1" pad="30"/>
 <wire x1="10.95" y1="7.05" x2="12.95" y2="7.05" width="0.2" layer="1"/>
 <wire x1="12.95" y1="7.05" x2="15.7" y2="9.8" width="0.2" layer="1"/>
@@ -1061,7 +1064,7 @@ design rules under a new name.</description>
 <wire x1="9.8" y1="13" x2="11.15" y2="13" width="0.2" layer="1"/>
 <wire x1="11.15" y1="13" x2="11.2" y2="12.95" width="0.2" layer="1"/>
 </signal>
-<signal name="PA10">
+<signal name="PA10-RX">
 <contactref element="IC1" pad="31"/>
 <wire x1="10.95" y1="6.55" x2="13.05" y2="6.55" width="0.2" layer="1"/>
 <wire x1="13.05" y1="6.55" x2="15.7" y2="9.2" width="0.2" layer="1"/>
