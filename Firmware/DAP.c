@@ -1510,19 +1510,19 @@ uint32_t DAP_ProcessCommand(uint8_t *request, uint8_t *response)
 void DAP_Setup(void)
 {
 	// Default settings (only non-zero values)
-	//DAP_Data.debug_port  = 0;
-	//DAP_Data.fast_clock  = 0;
+	//	DAP_Data.debug_port  = 0;
+	//	DAP_Data.fast_clock  = 0;
 	DAP_Data.clock_delay = CLOCK_DELAY(DAP_DEFAULT_SWJ_CLOCK);
-	//DAP_Data.transfer.idle_cycles = 0;
+	//	DAP_Data.transfer.idle_cycles = 0;
 	DAP_Data.transfer.retry_count = 100;
-	//DAP_Data.transfer.match_retry = 0;
-	//DAP_Data.transfer.match_mask  = 0x000000;
+	//	DAP_Data.transfer.match_retry = 0;
+	//	DAP_Data.transfer.match_mask  = 0x000000;
 #if (DAP_SWD != 0)
 	DAP_Data.swd_conf.turnaround  = 1;
-	//DAP_Data.swd_conf.data_phase  = 0;
+	//	DAP_Data.swd_conf.data_phase  = 0;
 #endif
 #if (DAP_JTAG != 0)
-	//DAP_Data.jtag_dev.count = 0;
+	//	DAP_Data.jtag_dev.count = 0;
 #endif
 
 	DAP_SETUP();  // Device specific setup
