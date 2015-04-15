@@ -197,12 +197,12 @@ static uint32_t DAP_LED(uint8_t *request, uint8_t *response)
 	switch (*request)
 	{
 		case DAP_LED_DEBUGGER_CONNECTED:
-			DEBUG("DAP_LED: CONNECTED %02X\n", (*(request+1) & 1));
-			LED_CONNECTED_OUT((*(request+1) & 1));
+			DEBUG("DAP_LED: CONNECTED %02X\n", (*(request + 1) & 1));
+			LED_CONNECTED_OUT((*(request + 1) & 1));
 			break;
 		case DAP_LED_TARGET_RUNNING:
-			DEBUG("DAP_LED: RUNNING   %02X\n", (*(request+1) & 1));
-			LED_RUNNING_OUT((*(request+1) & 1));
+			DEBUG("DAP_LED: RUNNING   %02X\n", (*(request + 1) & 1));
+			LED_RUNNING_OUT((*(request + 1) & 1));
 			break;
 		default:
 			DEBUG("DAP_LED: ERROR\n");

@@ -46,6 +46,7 @@ int32_t UART_Reset(void)
 	memset(RdBuffer.data, 0, sizeof(RdBuffer));
 
 	NVIC_EnableIRQ(USART_IRQn);		// Enable USART interrupt
+
 	return (1);
 }
 
@@ -58,38 +59,23 @@ int32_t UART_Reset(void)
     \return             1        Function succeeded.
  */
 
-const GPIO_InitTypeDef rx_init = {	USART_RX_PIN,	GPIO_Speed_50MHz,	GPIO_Mode_IPU	};
-const GPIO_InitTypeDef tx_init = {	USART_TX_PIN,	GPIO_Speed_50MHz,	GPIO_Mode_AF_PP	};
+const GPIO_InitTypeDef UART_RX_INIT = {	USART_RX_PIN,	GPIO_Speed_50MHz,	GPIO_Mode_IPU	};
+const GPIO_InitTypeDef UART_TX_INIT = {	USART_TX_PIN,	GPIO_Speed_50MHz,	GPIO_Mode_AF_PP	};
+const GPIO_InitTypeDef UART_RX_DEINIT = {	USART_RX_PIN,	(GPIOSpeed_TypeDef)0,	GPIO_Mode_AIN	};
+const GPIO_InitTypeDef UART_TX_DEINIT = {	USART_TX_PIN,	(GPIOSpeed_TypeDef)0,	GPIO_Mode_AIN	};
 
 int32_t USBD_CDC_ACM_PortInitialize (void)
 {
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 
-#if   defined ( USART_GPIO_CLK2 )
-	RCC_APB2PeriphClockCmd(USART_GPIO_CLK2, ENABLE);
-#elif defined ( USART_GPIO_CLK1 )
-	RCC_APB1PeriphClockCmd(USART_GPIO_CLK1, ENABLE);
-#else
-	#error "USART GPIO Clock not define"
-#endif
+	USART_GPIO_CLOCK(ENABLE);
+	USART_REMAP();
 
-#if   defined ( USART_REMAP )
-	GPIO_PinRemapConfig(USART_REMAP, ENABLE);
-#endif
-
-#if   defined ( USART_CLK2 )
-	RCC_APB2PeriphClockCmd(USART_CLK2, ENABLE);
-#elif defined ( USART_CLK1 )
-	RCC_APB1PeriphClockCmd(USART_CLK1, ENABLE);
-#else
-	#error "USART Clock not define"
-#endif
-
+	USART_CLOCK(ENABLE);
 	UART_Reset();
 
-	GPIO_INIT(USART_GPIO, rx_init);
-	GPIO_INIT(USART_GPIO, tx_init);
-
+	GPIO_INIT(USART_GPIO, UART_RX_INIT);
+	GPIO_INIT(USART_GPIO, UART_TX_INIT);
 	return (1);
 }
 
@@ -103,19 +89,9 @@ int32_t USBD_CDC_ACM_PortInitialize (void)
  */
 int32_t USBD_CDC_ACM_PortUninitialize (void)
 { 
-	const GPIO_InitTypeDef rx_deinit = {	USART_RX_PIN,	GPIO_Speed_50MHz,	GPIO_Mode_AIN	};
-	const GPIO_InitTypeDef tx_deinit = {	USART_TX_PIN,	GPIO_Speed_50MHz,	GPIO_Mode_AIN	};
-
-#if   defined ( USART_CLK2 )
-	RCC_APB2PeriphClockCmd(USART_CLK2, DISABLE);
-#elif defined ( USART_CLK1 )
-	RCC_APB1PeriphClockCmd(USART_CLK1, DISABLE);
-#else
-	#error "USART Clock not define"
-#endif
-
-	GPIO_INIT(USART_GPIO, rx_deinit);
-	GPIO_INIT(USART_GPIO, tx_deinit);
+	USART_CLOCK(DISABLE);
+	GPIO_INIT(USART_GPIO, UART_RX_DEINIT);
+	GPIO_INIT(USART_GPIO, UART_TX_DEINIT);
 	return (1);
 }
 
@@ -129,7 +105,7 @@ int32_t USBD_CDC_ACM_PortUninitialize (void)
  */
 int32_t USBD_CDC_ACM_PortReset (void)
 {
-	return (UART_Reset());
+	return UART_Reset();
 }
 
 /** \brief  Virtual COM Port change communication settings
@@ -230,7 +206,7 @@ int32_t USBD_CDC_ACM_PortSetControlLineState (uint16_t ctrl_bmp)
 int32_t UART_WriteData (uint8_t *data, uint16_t size)
 {
 	int32_t cnt = 0;
-	int16_t  len_in_buf;
+	int16_t len_in_buf;
 
 	while (size != 0)
 	{
@@ -244,9 +220,11 @@ int32_t UART_WriteData (uint8_t *data, uint16_t size)
 			cnt++;
 		}
 	}
+
 	if (cnt != 0)
 		USART_ITConfig(USART_PORT, USART_IT_TXE, ENABLE);
-	return (cnt);
+
+	return cnt;
 }
 
 /*------------------------------------------------------------------------------
@@ -257,6 +235,7 @@ int32_t UART_ReadData (uint8_t *data, uint16_t size)
 {
 	int32_t cnt = 0;
 
+#if defined ( USART_CLOCK )
 	while (size != 0)
 	{
 		--size;
@@ -268,6 +247,7 @@ int32_t UART_ReadData (uint8_t *data, uint16_t size)
 			cnt++;
 		}
 	}
+#endif
 	return (cnt);
 }
 
@@ -326,6 +306,7 @@ int32_t UART_GetCommunicationErrorStatus (void)
 		err |= UART_OVERRUN_ERROR_Msk;
 	if (BreakFlag == 0 && (StatusRegister & USART_SR_FE))
 		err |= UART_PARITY_ERROR_Msk;
+
 	return (err);
 }
 
@@ -351,7 +332,7 @@ int32_t UART_GetBreak (void)
 /*------------------------------------------------------------------------------
  * UART_IRQ:        Serial interrupt handler routine
  *----------------------------------------------------------------------------*/
-
+#if defined ( USART_CLOCK )
 void USART_IRQHandler(void)
 {
 	uint8_t  ch;
@@ -379,7 +360,7 @@ void USART_IRQHandler(void)
 	}
 
 	/* Read data register not empty interrupt */
-	if(USART_GetITStatus(USART_PORT, USART_IT_RXNE) != RESET)
+	if (USART_GetITStatus(USART_PORT, USART_IT_RXNE) != RESET)
 	{
 		len_in_buf = RdBuffer.cnt_in - RdBuffer.cnt_out;
 		if (len_in_buf < USART_BUFFER_SIZE)
@@ -399,5 +380,5 @@ void USART_IRQHandler(void)
 		}
 	}
 }
-
+#endif
 #endif

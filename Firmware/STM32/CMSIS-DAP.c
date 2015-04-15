@@ -16,14 +16,10 @@
 
 uint8_t usbd_hid_process(void);
 void CheckUserApplication(void);
-void LedConnectedOn(void);
-void LedConnectedOff(void);
-void LedConnectedToggle(void);
-void LedRunningOn(void);
-void LedRunningOff(void);
-void LedRunningToggle(void);
+
 void LedConnectedOut(uint16_t bit);
 void LedRunningOut(uint16_t bit);
+
 void Delay_ms(uint32_t delay);
 
 void NotifyOnStatusChange (void);
@@ -42,9 +38,50 @@ const CoreDescriptor_t CoreDescriptor = {
 	int32_t usb_rx_ch;
 	int32_t usb_tx_ch;
 #endif
+
 uint32_t led_count;
 uint32_t led_timeout;
 
+/**
+  * @brief	LED functions
+  *
+  */
+void LedConnectedOn(void)		{	LED_CONNECTED_PORT->BSRR = LED_CONNECTED;	}
+void LedConnectedOff(void)		{	LED_CONNECTED_PORT->BRR  = LED_CONNECTED;	}
+void LedConnectedToggle(void)	{	LED_CONNECTED_PORT->ODR ^= LED_CONNECTED;	}
+
+void LedRunningOn(void)			{	LED_RUNNING_PORT->BSRR   = LED_RUNNING;		}
+void LedRunningOff(void)		{	LED_RUNNING_PORT->BRR    = LED_RUNNING;		}
+void LedRunningToggle(void)		{	LED_RUNNING_PORT->ODR   ^= LED_RUNNING;		}
+
+const GPIO_InitTypeDef INIT_PINS_LED = {
+	(LED_CONNECTED | LED_RUNNING),
+	GPIO_Speed_2MHz,
+	GPIO_Mode_Out_PP
+};
+
+void LEDS_SETUP (void)
+{
+	RCC->APB2ENR |= LED_CONNECTED_RCC;
+	LED_CONNECTED_PORT->BRR = (LED_CONNECTED | LED_RUNNING);
+	GPIO_INIT(LED_CONNECTED_PORT, INIT_PINS_LED);
+}
+
+void LedConnectedOut(uint16_t bit)
+{
+	if (bit & 1)	LedConnectedOn();
+	else			LedConnectedOff();
+}
+void LedRunningOut(uint16_t bit)
+{
+	if (bit & 1)	LedRunningOn();
+	else			LedRunningOff();
+}
+
+/**
+  * @brief	Main
+  *
+  */
 int main(void)
 {
 	BoardInit();
@@ -155,38 +192,6 @@ int main(void)
 	}
 }
 
-void LedConnectedOn(void)		{	LED_CONNECTED_PORT->BSRR = LED_CONNECTED_PIN;	}
-void LedConnectedOff(void)		{	LED_CONNECTED_PORT->BRR  = LED_CONNECTED_PIN;	}
-void LedConnectedToggle(void)	{	LED_CONNECTED_PORT->ODR ^= LED_CONNECTED_PIN;	}
-
-void LedRunningOn(void)			{	LED_RUNNING_PORT->BSRR   = LED_RUNNING_PIN;		}
-void LedRunningOff(void)		{	LED_RUNNING_PORT->BRR    = LED_RUNNING_PIN;		}
-void LedRunningToggle(void)		{	LED_RUNNING_PORT->ODR   ^= LED_RUNNING_PIN;		}
-
-const GPIO_InitTypeDef INIT_PINS_LED = {
-	(LED_CONNECTED_PIN | LED_RUNNING_PIN),
-	GPIO_Speed_2MHz,
-	GPIO_Mode_Out_PP
-};
-
-void LEDS_SETUP (void)
-{
-	RCC->APB2ENR |= LED_CONNECTED_RCC;
-	LED_CONNECTED_PORT->BRR = (LED_CONNECTED_PIN | LED_RUNNING_PIN);
-	GPIO_INIT(LED_CONNECTED_PORT, INIT_PINS_LED);
-}
-
-void LedConnectedOut(uint16_t bit)
-{
-	if (bit & 1)	LedConnectedOn();
-	else			LedConnectedOff();
-}
-void LedRunningOut(uint16_t bit)
-{
-	if (bit & 1)	LedRunningOn();
-	else			LedRunningOff();
-}
-
 // Delay for specified time
 //    delay:  delay time in ms
 void Delay_ms(uint32_t delay)
@@ -231,16 +236,21 @@ void HardFault_Handler(void)
 
 
 /* Control USB connecting via SW	*/
+#ifdef PIN_USB_CONNECT_PORT
 const GPIO_InitTypeDef INIT_PIN_USB_CONNECT = {
 	PIN_USB_CONNECT,
 	GPIO_Speed_2MHz,
 	PIN_USB_MODE
 };
+#endif
+
 void PORT_USB_CONNECT_SETUP(void)
 {
+#ifdef PIN_USB_CONNECT_PORT
 	RCC->APB2ENR |= PIN_USB_CONNECT_RCC;
 	PIN_USB_CONNECT_OFF();
 	GPIO_INIT(PIN_USB_CONNECT_PORT, INIT_PIN_USB_CONNECT);
+#endif
 }
 
 void send_char(char ch)

@@ -334,11 +334,13 @@
 #define USBD_CDC_ACM_DIF_STRDESC        L"CMSIS-DAP DCI"
 #define USBD_CDC_ACM_SENDBUF_SIZE       64
 #define USBD_CDC_ACM_RECEIVEBUF_SIZE    64
+
 #if (((USBD_CDC_ACM_HS_ENABLE1) && (USBD_CDC_ACM_SENDBUF_SIZE    < USBD_CDC_ACM_HS_WMAXPACKETSIZE1)) || (USBD_CDC_ACM_SENDBUF_SIZE    < USBD_CDC_ACM_WMAXPACKETSIZE1))
-#error "Send Buffer size must be larger or equal to Bulk In maximum packet size!"
+	#error "Send Buffer size must be larger or equal to Bulk In maximum packet size!"
 #endif
+
 #if (((USBD_CDC_ACM_HS_ENABLE1) && (USBD_CDC_ACM_RECEIVEBUF_SIZE < USBD_CDC_ACM_HS_WMAXPACKETSIZE1)) || (USBD_CDC_ACM_RECEIVEBUF_SIZE < USBD_CDC_ACM_WMAXPACKETSIZE1))
-#error "Receive Buffer size must be larger or equal to Bulk Out maximum packet size!"
+	#error "Receive Buffer size must be larger or equal to Bulk Out maximum packet size!"
 #endif
 
 //     <e0> Custom Class Device

@@ -29,8 +29,8 @@
 
 typedef const struct
 {
-	void	(* LED_CONNECTED)	(uint16_t);
-	void	(* LED_RUNNING)		(uint16_t);
+	void	(* LedConnected)	(uint16_t);
+	void	(* LedRunning)		(uint16_t);
 } CoreDescriptor_t;
 
 extern const CoreDescriptor_t * pCoreDescriptor;
@@ -42,8 +42,7 @@ typedef const struct
 	void		(* UserAbort)	(void);
 } UserAppDescriptor_t;
 
-
-#if !defined ( BOARD_V1 ) && !defined ( BOARD_V2 ) && !defined ( BOARD_STM32RF )
+#if !defined ( BOARD_V1 ) && !defined ( BOARD_V2 ) && !defined ( BOARD_V3 ) && !defined ( BOARD_STM32RF )
 	#error "Board undefined"
 #endif
 
@@ -57,17 +56,15 @@ typedef const struct
 	#error "Unknown compiler"
 #endif
 
-#ifdef USE_DEBUG
+#if   defined( USE_DEBUG )
 	#define DEBUG(...)	printf(__VA_ARGS__)
 	#define INFO(...)	printf(__VA_ARGS__)
 	#define ERROR(...)	printf(__VA_ARGS__)
-#else
-#ifdef USE_INFO
+#elif defined( USE_INFO )
 	#define DEBUG(...)
 	#define INFO(...)	printf(__VA_ARGS__)
 	#define ERROR(...)	printf(__VA_ARGS__)
-#else
-#ifdef USE_ERROR
+#elif defined( USE_ERROR )
 	#define DEBUG(...)
 	#define INFO(...)
 	#define ERROR(...)	printf(__VA_ARGS__)
@@ -75,8 +72,6 @@ typedef const struct
 	#define DEBUG(...)
 	#define INFO(...)
 	#define ERROR(...)
-#endif
-#endif
 #endif
 
 //**************************************************************************************************
@@ -111,7 +106,8 @@ Provides definitions about:
 
 /// Indicate that JTAG communication mode is available at the Debug Port.
 /// This information is returned by the command \ref DAP_Info as part of <b>Capabilities</b>.
-#if defined ( BOARD_STM32RF )
+#if defined ( BOARD_STM32RF )	\
+ || defined ( BOARD_V3 )
 	#define DAP_JTAG			0				///< JTAG Mode: 1 = available, 0 = not available.
 #else
 	#define DAP_JTAG			1				///< JTAG Mode: 1 = available, 0 = not available.
@@ -156,23 +152,77 @@ Provides definitions about:
 ///@}
 
 #define GPIO_INIT(port, data)	GPIO_Init(port, (GPIO_InitTypeDef *)&data)
-#define PIN_MODE_MASK(pin)		(((uint32_t)0x0F) << ((pin) * 4))
-#define PIN_MODE(mode,pin)		(((uint32_t)mode) << ((pin) * 4))
-#define PIN_MASK(pin)			(((uint16_t)1) << (pin))
+#define PIN_MODE_MASK(pin)		(((uint32_t)0x0F) << ((pin) << 2))
+#define PIN_MODE(mode,pin)		(((uint32_t)mode) << ((pin) << 2))
+#define PIN_MASK(pin)			(((uint16_t)0x01) << (pin))
 
-// Debug Port I/O Pins
+// USART Port and I/O Pins
 
-#if defined ( BOARD_V1 ) || defined ( BOARD_V2 ) || defined ( BOARD_STM32RF )
+#if   defined ( BOARD_V1 )	\
+ ||   defined ( BOARD_V2 )	\
+ ||   defined ( BOARD_STM32RF )
 
-	#define USART_GPIO_CLK2		RCC_APB2Periph_GPIOA
+	#define USART_CLOCK(state)		RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, state)
+	#define USART_GPIO_CLOCK(state)	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, state)
+	#define USART_REMAP()			/* GPIO_PinRemapConfig(..., ENABLE) */
+
 	#define USART_PORT			USART1
-	#define USART_CLK2			RCC_APB2Periph_USART1
 	#define USART_GPIO			GPIOA
 	#define USART_TX_PIN		GPIO_Pin_9
 	#define USART_RX_PIN		GPIO_Pin_10
 	#define USART_IRQn			USART1_IRQn
 	#define USART_IRQHandler	USART1_IRQHandler
-	#define USART_BUFFER_SIZE	(64)	/*	Size of Receive and Transmit buffers MUST BE 2^n */
+	#define USART_BUFFER_SIZE	(256)	/*	Size of Receive and Transmit buffers MUST BE 2^n */
+
+#elif defined ( BOARD_V3 )
+
+	#define USART_CLOCK(state)		RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, state)
+	#define USART_GPIO_CLOCK(state)	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, state)
+	#define USART_REMAP()			/* GPIO_PinRemapConfig(..., ENABLE) */
+
+	#define USART_PORT			USART2
+	#define USART_GPIO			GPIOA
+	#define USART_TX_PIN		GPIO_Pin_2
+	#define USART_RX_PIN		GPIO_Pin_3
+	#define USART_IRQn			USART2_IRQn
+	#define USART_IRQHandler	USART2_IRQHandler
+	#define USART_BUFFER_SIZE	(256)	/*	Size of Receive and Transmit buffers MUST BE 2^n */
+
+#else
+
+	#warning "USART Port not define"
+
+#endif
+
+// USB Connect Pull-Up
+
+#if   defined ( BOARD_V1 )	\
+ ||   defined ( BOARD_V2 )
+
+	#define PIN_USB_CONNECT_RCC		RCC_APB2ENR_IOPAEN
+	#define PIN_USB_CONNECT_PORT    GPIOA
+	#define PIN_USB_CONNECT_PIN		8
+	#define PIN_USB_CONNECT         PIN_MASK(PIN_USB_CONNECT_PIN)
+	#define PIN_USB_MODE			GPIO_Mode_Out_PP
+	#define PIN_USB_CONNECT_ON()	PIN_USB_CONNECT_PORT->BSRR = PIN_USB_CONNECT
+	#define PIN_USB_CONNECT_OFF()	PIN_USB_CONNECT_PORT->BRR  = PIN_USB_CONNECT
+
+#elif defined ( BOARD_V3 )
+
+	#define PIN_USB_CONNECT_ON()
+	#define PIN_USB_CONNECT_OFF()
+
+#elif defined ( BOARD_STM32RF )
+
+	// USB Connect Pull-Up
+	#define PIN_USB_CONNECT_RCC		RCC_APB2ENR_IOPBEN
+	#define PIN_USB_CONNECT_PORT    GPIOB
+	#define PIN_USB_CONNECT_PIN		5
+	#define PIN_USB_CONNECT         PIN_MASK(PIN_USB_CONNECT_PIN)
+	#define PIN_USB_MODE			GPIO_Mode_Out_PP
+	#define PIN_USB_CONNECT_ON()	PIN_USB_CONNECT_PORT->BSRR = PIN_USB_CONNECT
+	#define PIN_USB_CONNECT_OFF()	PIN_USB_CONNECT_PORT->BRR  = PIN_USB_CONNECT
+
 #endif
 
 #if   defined ( BOARD_V1 )
@@ -187,11 +237,11 @@ Provides definitions about:
 
 	// TDO/SWO Pin (input)
 	#define PIN_TDO_PORT            GPIOA
-	#define PIN_TDO					GPIO_Pin_5
+	#define PIN_TDO					5
 
 	// TDI Pin (output)
 	#define PIN_TDI_PORT			GPIOA
-	#define PIN_TDI					GPIO_Pin_7
+	#define PIN_TDI					7
 
 	// nRESET Pin
 	#define PIN_nRESET_PORT         GPIOA
@@ -209,15 +259,33 @@ Provides definitions about:
 
 	// TDO/SWO Pin (input)
 	#define PIN_TDO_PORT            GPIOA
-	#define PIN_TDO					GPIO_Pin_6
+	#define PIN_TDO					6
 
 	// TDI Pin (output)
 	#define PIN_TDI_PORT			GPIOA
-	#define PIN_TDI					GPIO_Pin_7
+	#define PIN_TDI					7
 
 	// nRESET Pin
 	#define PIN_nRESET_PORT         GPIOB
 	#define PIN_nRESET_PIN			9
+
+#elif defined ( BOARD_V3 )
+
+	// SWDIO/TMS Pin
+	#define PIN_SWDIO_TMS_PORT		GPIOB
+	#define PIN_SWDIO_TMS_PIN		14
+
+	// SWCLK/TCK Pin
+	#define PIN_SWCLK_TCK_PORT		GPIOB
+	#define PIN_SWCLK_TCK_PIN		13
+
+	// TDO/SWO Pin (input)
+	#define PIN_TDO_PORT            GPIOA
+	#define PIN_TDO					6
+
+	// nRESET Pin
+	#define PIN_nRESET_PORT         GPIOB
+	#define PIN_nRESET_PIN			0
 
 #elif defined ( BOARD_STM32RF )
 
@@ -231,20 +299,11 @@ Provides definitions about:
 
 	// TDI Pin (output)
 	#define PIN_TDI_PORT			GPIOA
-	#define PIN_TDI					GPIO_Pin_7
+	#define PIN_TDI					8
 
 	// nRESET Pin
 	#define PIN_nRESET_PORT			GPIOB
 	#define PIN_nRESET_PIN			9
-
-	// USB Connect Pull-Up
-	#define PIN_USB_CONNECT_RCC		RCC_APB2ENR_IOPBEN
-	#define PIN_USB_CONNECT_PORT    GPIOB
-	#define PIN_USB_CONNECT_PIN		5
-	#define PIN_USB_CONNECT         PIN_MASK(PIN_USB_CONNECT_PIN)
-	#define PIN_USB_MODE			GPIO_Mode_Out_PP
-	#define PIN_USB_CONNECT_ON()	PIN_USB_CONNECT_PORT->BSRR = PIN_USB_CONNECT
-	#define PIN_USB_CONNECT_OFF()	PIN_USB_CONNECT_PORT->BRR  = PIN_USB_CONNECT
 
 #endif
 
@@ -256,20 +315,24 @@ Provides definitions about:
 
 	// Connected LED (GREEN)
 	#define LED_CONNECTED_PORT      GPIOB
-	#define LED_CONNECTED_PIN		GPIO_Pin_13
+	#define LED_CONNECTED_PIN		13
 
 	// Target Running LED (RED)
 	#define LED_RUNNING_PORT		GPIOB
-	#define LED_RUNNING_PIN			GPIO_Pin_12
+	#define LED_RUNNING_PIN			12
 
-	// USB Connect Pull-Up
-	#define PIN_USB_CONNECT_RCC		RCC_APB2ENR_IOPAEN
-	#define PIN_USB_CONNECT_PORT    GPIOA
-	#define PIN_USB_CONNECT_PIN		8
-	#define PIN_USB_CONNECT         PIN_MASK(PIN_USB_CONNECT_PIN)
-	#define PIN_USB_MODE			GPIO_Mode_Out_PP
-	#define PIN_USB_CONNECT_ON()	PIN_USB_CONNECT_PORT->BSRR = PIN_USB_CONNECT
-	#define PIN_USB_CONNECT_OFF()	PIN_USB_CONNECT_PORT->BRR  = PIN_USB_CONNECT
+#elif defined ( BOARD_V3 )
+
+	#define LED_CONNECTED_RCC		RCC_APB2ENR_IOPAEN
+
+	// Connected LED (GREEN)	0
+	// Target Running LED (RED)	1
+	// Off - float
+	#define LED_CONNECTED_PORT      GPIOA
+	#define LED_CONNECTED_PIN		9
+
+	#define LED_RUNNING_PORT		GPIOA
+	#define LED_RUNNING_PIN			12
 
 #elif defined ( BOARD_STM32RF )
 
@@ -277,14 +340,16 @@ Provides definitions about:
 
 	// Connected LED (GREEN)
 	#define LED_CONNECTED_PORT      GPIOB
-	#define LED_CONNECTED_PIN		GPIO_Pin_11
+	#define LED_CONNECTED_PIN		11
 
 	// Target Running LED (RED)
 	#define LED_RUNNING_PORT		GPIOB
-	#define LED_RUNNING_PIN			GPIO_Pin_12
+	#define LED_RUNNING_PIN			12
 	
 #endif
 
+#define LED_CONNECTED			PIN_MASK(LED_CONNECTED_PIN)
+#define LED_RUNNING				PIN_MASK(LED_CONNECTED_PIN)
 
 #define PIN_nRESET				PIN_MASK(PIN_nRESET_PIN)
 #define PIN_SWDIO_TMS			PIN_MASK(PIN_SWDIO_TMS_PIN)
@@ -587,14 +652,14 @@ It is recommended to provide the following LEDs for status indication:
            - 1: Connect LED ON: debugger is connected to CMSIS-DAP Debug Unit.
            - 0: Connect LED OFF: debugger is not connected to CMSIS-DAP Debug Unit.
 */
-#define LED_CONNECTED_OUT(b)	pCoreDescriptor->LED_CONNECTED(b)
+#define LED_CONNECTED_OUT(b)	pCoreDescriptor->LedConnected(b)
 
 /** Debug Unit: Set status Target Running LED.
 \param bit status of the Target Running LED.
            - 1: Target Running LED ON: program execution in target started.
            - 0: Target Running LED OFF: program execution in target stopped.
 */
-#define LED_RUNNING_OUT(b)		pCoreDescriptor->LED_RUNNING(b)
+#define LED_RUNNING_OUT(b)		pCoreDescriptor->LedRunning(b)
 
 ///@}
 
