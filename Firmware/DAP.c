@@ -44,7 +44,7 @@
 
 // Clock Macros
 
-#define MAX_SWJ_CLOCK(delay_cycles)	(CPU_CLOCK / 2 / (IO_PORT_WRITE_CYCLES + delay_cycles))
+#define MAX_SWJ_CLOCK(delay_cycles)	( CPU_CLOCK / 2 / (IO_PORT_WRITE_CYCLES + delay_cycles))
 #define CLOCK_DELAY(swj_clock)		((CPU_CLOCK / 2 / swj_clock) - IO_PORT_WRITE_CYCLES)
 
 
@@ -55,12 +55,15 @@ volatile uint8_t    DAP_TransferAbort;  // Trasfer Abort Flag
 #ifdef DAP_VENDOR
 const char DAP_Vendor [] = DAP_VENDOR;
 #endif
+
 #ifdef DAP_PRODUCT
 const char DAP_Product[] = DAP_PRODUCT;
 #endif
+
 #ifdef DAP_SER_NUM
 const char DAP_SerNum [] = DAP_SER_NUM;
 #endif
+
 const char DAP_FW_Ver [] = DAP_FW_VER;
 
 #if TARGET_DEVICE_FIXED
@@ -397,10 +400,10 @@ static uint32_t DAP_SWJ_Clock(uint8_t *request, uint8_t *response)
 	uint32_t clock;
 	uint32_t delay;
 
-	clock = (*(request+0) <<  0) |
-			(*(request+1) <<  8) |
-			(*(request+2) << 16) |
-			(*(request+3) << 24);
+	clock = (*(request + 0) <<  0) |
+			(*(request + 1) <<  8) |
+			(*(request + 2) << 16) |
+			(*(request + 3) << 24);
 
 	DEBUG("DAP_SWJ_Clock: %u\n", clock);
 
@@ -449,7 +452,8 @@ static uint32_t DAP_SWJ_Sequence(uint8_t *request, uint8_t *response)
 	uint32_t count;
 
 	count = *request++;
-	if (count == 0) count = 256;
+	if (count == 0)
+		count = 256;
 
 	DEBUG("DAP_SWJ_Sequence: %u\n", count);
 
@@ -684,9 +688,9 @@ err:	DEBUG("ERROR\n");
 //   return:   number of bytes in response
 static uint32_t DAP_TransferConfigure(uint8_t *request, uint8_t *response)
 {
-	DAP_Data.transfer.idle_cycles = *(request+0);
-	DAP_Data.transfer.retry_count = *(request+1) | (*(request+2) << 8);
-	DAP_Data.transfer.match_retry = *(request+3) | (*(request+4) << 8);
+	DAP_Data.transfer.idle_cycles = *(request + 0);
+	DAP_Data.transfer.retry_count = *(request + 1) | (*(request + 2) << 8);
+	DAP_Data.transfer.match_retry = *(request + 3) | (*(request + 4) << 8);
 	DEBUG("DAP_TransferConfigure: %d %d %d\n",
 		DAP_Data.transfer.idle_cycles,
 		DAP_Data.transfer.retry_count,

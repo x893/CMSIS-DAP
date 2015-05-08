@@ -15,7 +15,7 @@ static struct {
 	volatile uint16_t	idx_out;
 	volatile int16_t	cnt_in;
 	volatile int16_t	cnt_out;
-	uint8_t		data[USART_BUFFER_SIZE];
+			uint8_t		data[USART_BUFFER_SIZE];
 } WrBuffer, RdBuffer;
 
 static USART_InitTypeDef UART_Config;
@@ -42,9 +42,6 @@ int32_t UART_Reset(void)
 
 	USBD_CDC_ACM_PortSetLineCoding(&line_coding_current);
 
-	memset(WrBuffer.data, 0, sizeof(WrBuffer));
-	memset(RdBuffer.data, 0, sizeof(RdBuffer));
-
 	NVIC_EnableIRQ(USART_IRQn);		// Enable USART interrupt
 
 	return (1);
@@ -59,16 +56,14 @@ int32_t UART_Reset(void)
     \return             1        Function succeeded.
  */
 
-const GPIO_InitTypeDef UART_RX_INIT = {	USART_RX_PIN,	GPIO_Speed_50MHz,	GPIO_Mode_IPU	};
-const GPIO_InitTypeDef UART_TX_INIT = {	USART_TX_PIN,	GPIO_Speed_50MHz,	GPIO_Mode_AF_PP	};
-const GPIO_InitTypeDef UART_RX_DEINIT = {	USART_RX_PIN,	(GPIOSpeed_TypeDef)0,	GPIO_Mode_AIN	};
-const GPIO_InitTypeDef UART_TX_DEINIT = {	USART_TX_PIN,	(GPIOSpeed_TypeDef)0,	GPIO_Mode_AIN	};
+const GPIO_InitTypeDef UART_RX_INIT   = {	USART_RX_PIN,	GPIO_Speed_50MHz,		GPIO_Mode_IPU	};
+const GPIO_InitTypeDef UART_TX_INIT   = {	USART_TX_PIN,	GPIO_Speed_50MHz,		GPIO_Mode_AF_PP	};
+const GPIO_InitTypeDef UART_RX_DEINIT = {	USART_RX_PIN,	(GPIOSpeed_TypeDef)0,	GPIO_Mode_IPU	};
+const GPIO_InitTypeDef UART_TX_DEINIT = {	USART_TX_PIN,	(GPIOSpeed_TypeDef)0,	GPIO_Mode_IPU	};
 
 int32_t USBD_CDC_ACM_PortInitialize (void)
 {
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
-
-	USART_GPIO_CLOCK(ENABLE);
 	USART_REMAP();
 
 	USART_CLOCK(ENABLE);
@@ -76,6 +71,7 @@ int32_t USBD_CDC_ACM_PortInitialize (void)
 
 	GPIO_INIT(USART_GPIO, UART_RX_INIT);
 	GPIO_INIT(USART_GPIO, UART_TX_INIT);
+
 	return (1);
 }
 
@@ -207,6 +203,7 @@ int32_t UART_WriteData (uint8_t *data, uint16_t size)
 {
 	int32_t cnt = 0;
 	int16_t len_in_buf;
+	uint16_t next;
 
 	while (size != 0)
 	{
@@ -214,8 +211,10 @@ int32_t UART_WriteData (uint8_t *data, uint16_t size)
 		len_in_buf = WrBuffer.cnt_in - WrBuffer.cnt_out;
 		if (len_in_buf < USART_BUFFER_SIZE)
 		{
-			WrBuffer.data[WrBuffer.idx_in++] = *data++;
-			WrBuffer.idx_in &= (USART_BUFFER_SIZE - 1);
+			next = WrBuffer.idx_in;
+			WrBuffer.data[next] = *data++;
+			next = (next + 1) & (USART_BUFFER_SIZE - 1);
+			WrBuffer.idx_in = next;
 			WrBuffer.cnt_in++;
 			cnt++;
 		}
@@ -340,25 +339,6 @@ void USART_IRQHandler(void)
 
 	StatusRegister = USART_PORT->SR;
 
-	/* Transmit data register empty interrupt */
-	if (USART_GetITStatus(USART_PORT, USART_IT_TXE) != RESET)
-	{
-		if (SendBreakFlag == 1)
-		{
-			USART_SendBreak(USART_PORT);
-		}
-		else if (WrBuffer.cnt_in != WrBuffer.cnt_out)
-		{
-			USART_SendData(USART_PORT, WrBuffer.data[WrBuffer.idx_out++]);
-			WrBuffer.idx_out &= (USART_BUFFER_SIZE - 1);
-			WrBuffer.cnt_out++;
-		}
-		else
-		{
-			USART_ITConfig(USART_PORT, USART_IT_TXE, DISABLE);
-		}
-	}
-
 	/* Read data register not empty interrupt */
 	if (USART_GetITStatus(USART_PORT, USART_IT_RXNE) != RESET)
 	{
@@ -377,6 +357,25 @@ void USART_IRQHandler(void)
 				BreakFlag = 0;
 			RdBuffer.idx_in &= (USART_BUFFER_SIZE - 1);
 			RdBuffer.cnt_in++;
+		}
+	}
+
+	/* Transmit data register empty interrupt */
+	if (USART_GetITStatus(USART_PORT, USART_IT_TXE) != RESET)
+	{
+		if (SendBreakFlag == 1)
+		{
+			USART_SendBreak(USART_PORT);
+		}
+		else if (WrBuffer.cnt_in != WrBuffer.cnt_out)
+		{
+			USART_SendData(USART_PORT, WrBuffer.data[WrBuffer.idx_out++]);
+			WrBuffer.idx_out &= (USART_BUFFER_SIZE - 1);
+			WrBuffer.cnt_out++;
+		}
+		else
+		{
+			USART_ITConfig(USART_PORT, USART_IT_TXE, DISABLE);
 		}
 	}
 }

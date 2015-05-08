@@ -156,6 +156,13 @@ Provides definitions about:
 #define PIN_MODE(mode,pin)		(((uint32_t)mode) << ((pin) << 2))
 #define PIN_MASK(pin)			(((uint16_t)0x01) << (pin))
 
+typedef enum Pin_e {
+	PA = 0x00, PA0 = 0x00, PA1, PA2, PA3, PA4, PA5, PA6, PA7, PA8, PA9, PA10, PA11, PA12, PA13, PA14, PA15,
+	PB = 0x10, PB0 = 0x10, PB1, PB2, PB3, PB4, PB5, PB6, PB7, PB8, PB9, PB10, PB11, PB12, PB13, PB14, PB15,
+	PC = 0x20, PC0 = 0x20, PC1, PC2, PC3, PC4, PC5, PC6, PC7, PC8, PC9, PC10, PC11, PC12, PC13, PC14, PC15,
+	PD = 0x30, PD0 = 0x30, PD1, PD2,
+} Pin_t;
+
 // USART Port and I/O Pins
 
 #if   defined ( BOARD_V1 )	\
@@ -177,7 +184,6 @@ Provides definitions about:
 #elif defined ( BOARD_V3 )
 
 	#define USART_CLOCK(state)		RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, state)
-	#define USART_GPIO_CLOCK(state)	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, state)
 	#define USART_REMAP()			/* GPIO_PinRemapConfig(..., ENABLE) */
 
 	#define USART_PORT			USART2
@@ -492,7 +498,6 @@ __STATIC_INLINE void PIN_SWCLK_TCK_CLR (void)
 {
 	PIN_SWCLK_TCK_PORT->BRR = PIN_SWCLK_TCK;
 }
-
 
 // SWDIO/TMS Pin I/O --------------------------------------
 

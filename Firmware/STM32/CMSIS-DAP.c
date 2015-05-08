@@ -95,22 +95,8 @@ int main(void)
 	}
 	LedConnectedOff();
 
-	Delay_ms(100);
-	/*
-	led_count = 0;
-	// Check for USB connected
-	while ((GPIOA->IDR & GPIO_Pin_11) != 0)
-	{
-		if (led_count++ == 0)
-			LedConnectedOn();
-		else if (led_count == 5)
-			LedConnectedOff();
-		else if (led_count == 25)
-			led_count = 0;
-		Delay_ms(10);
-	}
-	LedConnectedOff();
-	*/
+	Delay_ms(10);
+
 	// USB Device Initialization and connect
 	usbd_init();
 	usbd_connect(__TRUE);
@@ -396,27 +382,18 @@ void NotifyOnStatusChange (void)
 #endif
 
 const GPIO_InitTypeDef INIT_PINS_A = {
-	(	GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2 |
+	(	GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3 |
 		GPIO_Pin_4 | GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7 |
-		GPIO_Pin_8 |
-		GPIO_Pin_9 | GPIO_Pin_10 |
+		GPIO_Pin_8 | GPIO_Pin_9 | GPIO_Pin_10 |
+//		GPIO_Pin_11 | GPIO_Pin_12 |		// USB pins
+//		GPIO_Pin_13 | GPIO_Pin_14 |		// SWD pins
 		GPIO_Pin_15
 	),
 	(GPIOSpeed_TypeDef)0,
 	GPIO_Mode_AIN
 };
-const GPIO_InitTypeDef INIT_PINS_A3 = {
-	(GPIO_Pin_3),
-	(GPIOSpeed_TypeDef)0,
-	GPIO_Mode_AIN
-};
 const GPIO_InitTypeDef INIT_PINS_B = {
-	(	GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7 | GPIO_Pin_8 |
-		GPIO_Pin_9 |
-		GPIO_Pin_10 | GPIO_Pin_11 |
-		GPIO_Pin_12 | GPIO_Pin_13 |
-		GPIO_Pin_14 | GPIO_Pin_15
-	),
+	GPIO_Pin_All,
 	(GPIOSpeed_TypeDef)0,
 	GPIO_Mode_AIN
 };
@@ -430,11 +407,11 @@ void BoardInit(void)
 {
 	// Enable GPIOA-GPIOC
 	RCC->APB2ENR |= (RCC_APB2ENR_AFIOEN | RCC_APB2ENR_IOPAEN | RCC_APB2ENR_IOPBEN | RCC_APB2ENR_IOPCEN);
+
 	// Enable SWJ only
 	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
 
 	GPIO_INIT(GPIOA, INIT_PINS_A);
-	GPIO_INIT(GPIOA, INIT_PINS_A3);
 	GPIO_INIT(GPIOB, INIT_PINS_B);
 	GPIO_INIT(GPIOC, INIT_PINS_C);
 

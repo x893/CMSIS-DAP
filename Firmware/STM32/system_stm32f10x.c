@@ -393,17 +393,17 @@ void SystemCoreClockUpdate (void)
 static void SetSysClock(void)
 {
 #ifdef SYSCLK_FREQ_HSE
-  SetSysClockToHSE();
+	SetSysClockToHSE();
 #elif defined SYSCLK_FREQ_24MHz
-  SetSysClockTo24();
+	SetSysClockTo24();
 #elif defined SYSCLK_FREQ_36MHz
-  SetSysClockTo36();
+	SetSysClockTo36();
 #elif defined SYSCLK_FREQ_48MHz
-  SetSysClockTo48();
+	SetSysClockTo48();
 #elif defined SYSCLK_FREQ_56MHz
-  SetSysClockTo56();  
+	SetSysClockTo56();  
 #elif defined SYSCLK_FREQ_72MHz
-  SetSysClockTo72();
+	SetSysClockTo72();
 #endif
  
  /* If none of the define above is enabled, the HSI is used as System clock

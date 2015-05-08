@@ -624,11 +624,11 @@ uint16_t USART_ReceiveData(USART_TypeDef* USARTx)
   */
 void USART_SendBreak(USART_TypeDef* USARTx)
 {
-  /* Check the parameters */
-  assert_param(IS_USART_ALL_PERIPH(USARTx));
-  
-  /* Send break characters */
-  USARTx->CR1 |= CR1_SBK_Set;
+	/* Check the parameters */
+	assert_param(IS_USART_ALL_PERIPH(USARTx));
+
+	/* Send break characters */
+	USARTx->CR1 |= CR1_SBK_Set;
 }
 
 /**
