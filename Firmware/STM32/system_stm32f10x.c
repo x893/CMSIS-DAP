@@ -95,7 +95,7 @@
 	// #define SYSCLK_FREQ_24MHz  24000000 
 	// #define SYSCLK_FREQ_36MHz  36000000
 	// #define SYSCLK_FREQ_56MHz  56000000
-	#ifdef STM32F102CB
+	#if defined( STM32F102CB ) || defined( STM32F102C8 )
 		#warning "Use STM32F102Cx (48 MHz)"
 		#define SYSCLK_FREQ_48MHz  48000000
 	#else
