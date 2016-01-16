@@ -379,61 +379,64 @@
 #define USBD_EP_NUM_CALC6           MAX(USBD_EP_NUM_CALC4, USBD_EP_NUM_CALC5)
 #define USBD_EP_NUM                (USBD_EP_NUM_CALC6)
 
-#if    (USBD_HID_ENABLE)
-#if    (USBD_MSC_ENABLE)
-#if ((((USBD_HID_EP_INTIN   == USBD_MSC_EP_BULKIN)  || \
-       (USBD_HID_EP_INTIN   == USBD_MSC_EP_BULKIN)))|| \
-      ((USBD_HID_EP_INTOUT  != 0)                   && \
-       (USBD_HID_EP_INTOUT  == USBD_MSC_EP_BULKIN)  || \
-       (USBD_HID_EP_INTOUT  == USBD_MSC_EP_BULKOUT)))
-#error "HID and Mass Storage Device Interface can not use same Endpoints!"
+#if	(USBD_HID_ENABLE)
+#if	(USBD_MSC_ENABLE)
+#if	((((USBD_HID_EP_INTIN   == USBD_MSC_EP_BULKIN)	|| \
+	(USBD_HID_EP_INTIN   == USBD_MSC_EP_BULKIN)))	|| \
+	((USBD_HID_EP_INTOUT  != 0)						&& \
+	(USBD_HID_EP_INTOUT  == USBD_MSC_EP_BULKIN)		|| \
+	(USBD_HID_EP_INTOUT  == USBD_MSC_EP_BULKOUT)))
+	#error "HID and Mass Storage Device Interface can not use same Endpoints!"
 #endif
 #endif
-#if    (USBD_ADC_ENABLE)
-#if   ((USBD_HID_EP_INTIN   == USBD_ADC_EP_ISOOUT)  || \
-      ((USBD_HID_EP_INTOUT  != 0)                   && \
-       (USBD_HID_EP_INTOUT  == USBD_ADC_EP_ISOOUT)))
-#error "HID and Audio Device Interface can not use same Endpoints!"
+
+#if	(USBD_ADC_ENABLE)
+#if	((USBD_HID_EP_INTIN   == USBD_ADC_EP_ISOOUT)	|| \
+	((USBD_HID_EP_INTOUT  != 0)						&& \
+	(USBD_HID_EP_INTOUT  == USBD_ADC_EP_ISOOUT)))
+	#error "HID and Audio Device Interface can not use same Endpoints!"
 #endif
 #endif
-#if    (USBD_CDC_ACM_ENABLE)
-#if  (((USBD_HID_EP_INTIN   == USBD_CDC_ACM_EP_INTIN)   || \
-       (USBD_HID_EP_INTIN   == USBD_CDC_ACM_EP_BULKIN)  || \
-       (USBD_HID_EP_INTIN   == USBD_CDC_ACM_EP_BULKOUT))|| \
-      ((USBD_HID_EP_INTOUT  != 0)                       && \
-      ((USBD_HID_EP_INTOUT  == USBD_CDC_ACM_EP_INTIN)   || \
-       (USBD_HID_EP_INTOUT  == USBD_CDC_ACM_EP_BULKIN)  || \
-       (USBD_HID_EP_INTOUT  == USBD_CDC_ACM_EP_BULKOUT))))
-#error "HID and Communication Device Interface can not use same Endpoints!"
+
+#if	(USBD_CDC_ACM_ENABLE)
+#if	(((USBD_HID_EP_INTIN   == USBD_CDC_ACM_EP_INTIN)	|| \
+	(USBD_HID_EP_INTIN   == USBD_CDC_ACM_EP_BULKIN)		|| \
+	(USBD_HID_EP_INTIN   == USBD_CDC_ACM_EP_BULKOUT))	|| \
+	((USBD_HID_EP_INTOUT  != 0)							&& \
+	((USBD_HID_EP_INTOUT  == USBD_CDC_ACM_EP_INTIN)		|| \
+	(USBD_HID_EP_INTOUT  == USBD_CDC_ACM_EP_BULKIN)		|| \
+	(USBD_HID_EP_INTOUT  == USBD_CDC_ACM_EP_BULKOUT))))
+	#error "HID and Communication Device Interface can not use same Endpoints!"
 #endif
 #endif
 #endif
 
-#if    (USBD_MSC_ENABLE)
-#if    (USBD_ADC_ENABLE)
-#if   ((USBD_MSC_EP_BULKIN  == USBD_ADC_EP_ISOOUT)  || \
-       (USBD_MSC_EP_BULKOUT == USBD_ADC_EP_ISOOUT))
-#error "Mass Storage Device and Audio Device Interface can not use same Endpoints!"
+#if	(USBD_MSC_ENABLE)
+#if	(USBD_ADC_ENABLE)
+#if	((USBD_MSC_EP_BULKIN  == USBD_ADC_EP_ISOOUT)	|| \
+	(USBD_MSC_EP_BULKOUT == USBD_ADC_EP_ISOOUT))
+	#error "Mass Storage Device and Audio Device Interface can not use same Endpoints!"
 #endif
 #endif
-#if    (USBD_CDC_ACM_ENABLE)
-#if   ((USBD_MSC_EP_BULKIN  == USBD_CDC_ACM_EP_INTIN)   || \
-       (USBD_MSC_EP_BULKIN  == USBD_CDC_ACM_EP_BULKIN)  || \
-       (USBD_MSC_EP_BULKIN  == USBD_CDC_ACM_EP_BULKOUT) || \
-       (USBD_MSC_EP_BULKOUT == USBD_CDC_ACM_EP_INTIN)   || \
-       (USBD_MSC_EP_BULKOUT == USBD_CDC_ACM_EP_BULKIN)  || \
-       (USBD_MSC_EP_BULKOUT == USBD_CDC_ACM_EP_BULKOUT))
-#error "Mass Storage Device and Communication Device Interface can not use same Endpoints!"
+
+#if	(USBD_CDC_ACM_ENABLE)
+#if	((USBD_MSC_EP_BULKIN  == USBD_CDC_ACM_EP_INTIN)		|| \
+	(USBD_MSC_EP_BULKIN  == USBD_CDC_ACM_EP_BULKIN)		|| \
+	(USBD_MSC_EP_BULKIN  == USBD_CDC_ACM_EP_BULKOUT)	|| \
+	(USBD_MSC_EP_BULKOUT == USBD_CDC_ACM_EP_INTIN)		|| \
+	(USBD_MSC_EP_BULKOUT == USBD_CDC_ACM_EP_BULKIN)		|| \
+	(USBD_MSC_EP_BULKOUT == USBD_CDC_ACM_EP_BULKOUT))
+	#error "Mass Storage Device and Communication Device Interface can not use same Endpoints!"
 #endif
 #endif
 #endif
 
-#if    (USBD_ADC_ENABLE)
-#if    (USBD_CDC_ACM_ENABLE)
-#if   ((USBD_ADC_EP_ISOOUT  == USBD_CDC_ACM_EP_INTIN)   || \
-       (USBD_ADC_EP_ISOOUT  == USBD_CDC_ACM_EP_BULKIN)  || \
-       (USBD_ADC_EP_ISOOUT  == USBD_CDC_ACM_EP_BULKOUT))
-#error "Audio Device and Communication Device Interface can not use same Endpoints!"
+#if (USBD_ADC_ENABLE)
+#if (USBD_CDC_ACM_ENABLE)
+#if ((USBD_ADC_EP_ISOOUT  == USBD_CDC_ACM_EP_INTIN)		|| \
+	(USBD_ADC_EP_ISOOUT  == USBD_CDC_ACM_EP_BULKIN)		|| \
+	(USBD_ADC_EP_ISOOUT  == USBD_CDC_ACM_EP_BULKOUT))
+	#error "Audio Device and Communication Device Interface can not use same Endpoints!"
 #endif
 #endif
 #endif
@@ -441,18 +444,18 @@
 #define USBD_ADC_CIF_NUM           (0)
 #define USBD_ADC_SIF1_NUM          (1)
 #define USBD_ADC_SIF2_NUM          (2)
-#define USBD_CDC_ACM_CIF_NUM       (USBD_ADC_ENABLE*2+0)
-#define USBD_CDC_ACM_DIF_NUM       (USBD_ADC_ENABLE*2+1)
-#define USBD_HID_IF_NUM            (USBD_ADC_ENABLE*2+USBD_CDC_ACM_ENABLE*2)
-#define USBD_MSC_IF_NUM            (USBD_ADC_ENABLE*2+USBD_CDC_ACM_ENABLE*2+USBD_HID_ENABLE)
+#define USBD_CDC_ACM_CIF_NUM       (USBD_ADC_ENABLE * 2 + 0)
+#define USBD_CDC_ACM_DIF_NUM       (USBD_ADC_ENABLE * 2 + 1)
+#define USBD_HID_IF_NUM            (USBD_ADC_ENABLE * 2 + USBD_CDC_ACM_ENABLE * 2)
+#define USBD_MSC_IF_NUM            (USBD_ADC_ENABLE * 2 + USBD_CDC_ACM_ENABLE * 2 + USBD_HID_ENABLE)
 
-#define USBD_ADC_CIF_STR_NUM       (3+USBD_STRDESC_SER_ENABLE+0)
-#define USBD_ADC_SIF1_STR_NUM      (3+USBD_STRDESC_SER_ENABLE+1)
-#define USBD_ADC_SIF2_STR_NUM      (3+USBD_STRDESC_SER_ENABLE+2)
-#define USBD_CDC_ACM_CIF_STR_NUM   (3+USBD_STRDESC_SER_ENABLE+USBD_ADC_ENABLE*3+0)
-#define USBD_CDC_ACM_DIF_STR_NUM   (3+USBD_STRDESC_SER_ENABLE+USBD_ADC_ENABLE*3+1)
-#define USBD_HID_IF_STR_NUM        (3+USBD_STRDESC_SER_ENABLE+USBD_ADC_ENABLE*3+USBD_CDC_ACM_ENABLE*2)
-#define USBD_MSC_IF_STR_NUM        (3+USBD_STRDESC_SER_ENABLE+USBD_ADC_ENABLE*3+USBD_CDC_ACM_ENABLE*2+USBD_HID_ENABLE)
+#define USBD_ADC_CIF_STR_NUM       (3 + USBD_STRDESC_SER_ENABLE + 0)
+#define USBD_ADC_SIF1_STR_NUM      (3 + USBD_STRDESC_SER_ENABLE + 1)
+#define USBD_ADC_SIF2_STR_NUM      (3 + USBD_STRDESC_SER_ENABLE + 2)
+#define USBD_CDC_ACM_CIF_STR_NUM   (3 + USBD_STRDESC_SER_ENABLE + USBD_ADC_ENABLE * 3 + 0)
+#define USBD_CDC_ACM_DIF_STR_NUM   (3 + USBD_STRDESC_SER_ENABLE + USBD_ADC_ENABLE * 3 + 1)
+#define USBD_HID_IF_STR_NUM        (3 + USBD_STRDESC_SER_ENABLE + USBD_ADC_ENABLE * 3 + USBD_CDC_ACM_ENABLE * 2)
+#define USBD_MSC_IF_STR_NUM        (3 + USBD_STRDESC_SER_ENABLE + USBD_ADC_ENABLE * 3 + USBD_CDC_ACM_ENABLE * 2 + USBD_HID_ENABLE)
 
 #if    (USBD_HID_ENABLE)
 #if    (USBD_HID_HS_ENABLE)
