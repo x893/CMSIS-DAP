@@ -196,7 +196,7 @@ void USBD_Reset (void) {
   LPC_USB0->ENDPTFLUSH = 0xFFFFFFFF;
   while (LPC_USB0->ENDPTFLUSH);
 
-  LPC_USB0->USBCMD_D &= ~0x00FF0000;    /* immediate intrrupt treshold        */
+  LPC_USB0->USBCMD_D &= ~0x00FF0000;    /* immediate intrrupt threshold        */
 
   /* clear ednpoint queue heads                                               */
   ptr = (uint8_t *)EPQHx;
